@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Perekuplyu</title>
+<style>
+:root{
+  --ink:#0B1215; --gray:#77828A; --gray2:#B9C2C8; --line:rgba(11,18,21,.08);
+  --tint:#0A7A6C; --tint2:#12A08E; --tint-soft:rgba(10,122,108,.12);
+  --amber:#FF9F0A; --amber-deep:#B36E00; --amber-soft:rgba(255,159,10,.14);
+  --red:#FF3B30; --green:#34C759;
+  --glass:rgba(255,255,255,.62); --glass-strong:rgba(255,255,255,.78);
+  --glass-brd:rgba(255,255,255,.75); --card:rgba(255,255,255,.86);
+  --blur:blur(28px) saturate(1.8);
+  --r:26px; --r-s:18px;
+  --sf:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
+  --shadow:0 8px 30px rgba(15,35,40,.10), inset 0 1px 0 rgba(255,255,255,.9);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:var(--sf);color:var(--ink);background:#E9EDF0;overflow:hidden}
+button{font-family:var(--sf);border:none;background:none;cursor:pointer;color:inherit}
+input,select,textarea{font-family:var(--sf);font-size:16px;color:var(--ink)}
+:focus-visible{outline:2.5px solid var(--tint);outline-offset:2px;border-radius:10px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+svg.i{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ---- ambient background (для эффекта стекла) ---- */
+.ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.55}
+.b1{width:52vmax;height:52vmax;background:#BFE3DC;top:-18vmax;left:-14vmax}
+.b2{width:44vmax;height:44vmax;background:#FFE3B3;bottom:-16vmax;right:-10vmax}
+.b3{width:30vmax;height:30vmax;background:#CFE0F2;top:36%;left:56%}
+
+/* ---- app shell ---- */
+.app{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;max-width:640px;margin:0 auto}
+.content{flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 16px 140px;scrollbar-width:none}
+.content::-webkit-scrollbar{display:none}
+.page{display:none;animation:pg .28s ease}
+.page.on{display:block}
+@keyframes pg{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---- top glass bar ---- */
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:14px 2px 10px}
+.topbar .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:15px;letter-spacing:.3px;
+  background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--glass-brd);border-radius:100px;padding:9px 16px 9px 10px;box-shadow:var(--shadow)}
+.brand .mark{width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,var(--tint),var(--tint2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+.topbar .spacer{flex:1}
+.balpill{display:flex;align-items:center;gap:8px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--glass-brd);border-radius:100px;padding:8px 14px;box-shadow:var(--shadow);font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}
+.balpill svg{color:var(--amber)}
+.balpill .b{transition:.2s}
+.balpill.bump .b{animation:bump .5s}
+@keyframes bump{30%{transform:scale(1.25);color:var(--amber-deep)}}
+
+.large-title{font-size:34px;font-weight:800;letter-spacing:-.8px;padding:8px 4px 2px}
+.subtitle{color:var(--gray);font-size:14px;font-weight:500;padding:0 4px 14px}
+.sect-t{font-size:20px;font-weight:800;letter-spacing:-.3px;padding:20px 4px 10px}
+
+/* ---- glass search / controls ---- */
+.searchwrap{display:flex;gap:9px;padding-bottom:12px}
+.search{flex:1;display:flex;align-items:center;gap:9px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--glass-brd);border-radius:100px;padding:11px 16px;color:var(--gray);box-shadow:var(--shadow)}
+.search input{flex:1;border:none;background:transparent;outline:none;min-width:0}
+.gbtn{width:44px;height:44px;border-radius:100px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--glass-brd);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;position:relative;font-size:18px;transition:.15s}
+.gbtn:active{transform:scale(.92)}
+.gbtn .dot{position:absolute;top:9px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+
+.seg{display:flex;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-brd);
+  border-radius:100px;padding:3px;margin-bottom:12px;box-shadow:var(--shadow)}
+.seg button{flex:1;font-size:13px;font-weight:700;padding:8px 4px;border-radius:100px;color:#4c565c;transition:.18s;white-space:nowrap}
+.seg button.on{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.14);color:#000}
+
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:14px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;font-size:13px;font-weight:700;padding:8px 15px;border-radius:100px;background:var(--glass);
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-brd);color:#4c565c;box-shadow:var(--shadow);transition:.15s}
+.chip.on{background:var(--tint);border-color:var(--tint);color:#fff}
+
+/* ---- cards ---- */
+.cards{display:flex;flex-direction:column;gap:16px;padding-bottom:8px}
+@media(min-width:560px){.cards{display:grid;grid-template-columns:1fr 1fr}}
+.card{background:var(--card);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-brd);
+  border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);transition:.15s}
+.card:active{transform:scale(.985)}
+.cimg{position:relative;aspect-ratio:16/9;cursor:pointer}
+.cimg svg.pic{width:100%;height:100%;display:block}
+.badges{position:absolute;top:12px;left:12px;display:flex;gap:6px}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:5px 10px;border-radius:100px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.badge svg{width:11px;height:11px}
+.badge.check{background:rgba(52,199,89,.9);color:#fff}
+.badge.hot{background:rgba(255,59,48,.9);color:#fff}
+.badge.torg{background:rgba(255,255,255,.85);color:#000}
+.hbt{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.8);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;color:#4c565c;font-size:18px;transition:.15s;border:1px solid rgba(255,255,255,.7)}
+.hbt:active{transform:scale(.85)}
+.hbt.on{color:var(--red)}
+.hbt.on svg{fill:var(--red)}
+.cbody{padding:13px 16px 15px;cursor:pointer}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.cprice{font-size:21px;font-weight:800;letter-spacing:-.4px;font-variant-numeric:tabular-nums}
+.bonus-pill{display:inline-flex;align-items:center;gap:5px;background:var(--amber-soft);color:var(--amber-deep);
+  font-size:12px;font-weight:800;padding:6px 11px;border-radius:100px;font-variant-numeric:tabular-nums}
+.bonus-pill svg{width:13px;height:13px}
+.ctitle{font-size:15px;font-weight:700;color:#2c383d;margin-top:3px}
+.cspecs{font-size:13px;color:var(--gray);margin-top:3px;font-weight:500}
+.cfoot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;font-size:12px;color:var(--gray);font-weight:600}
+.cfoot span{display:inline-flex;align-items:center;gap:4px}
+.cfoot svg{width:12px;height:12px}
+.empty{text-align:center;padding:52px 30px;color:var(--gray)}
+.empty svg{width:52px;height:52px;stroke-width:1.3;color:var(--gray2);margin-bottom:12px}
+.empty b{color:var(--ink);font-size:17px;display:block;margin-bottom:4px}
+
+/* ---- glass groups (iOS lists) ---- */
+.group-h{font-size:13px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;padding:18px 18px 8px}
+.group{background:var(--card);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--glass-brd);border-radius:var(--r-s);overflow:hidden;box-shadow:var(--shadow)}
+.row{display:flex;align-items:center;gap:12px;padding:13px 16px;min-height:48px;position:relative}
+.row + .row::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--line)}
+.row .lbl{font-size:16px}
+.row .val{margin-left:auto;color:var(--gray);font-size:15px;display:flex;align-items:center;gap:6px}
+.row select,.row input[type=number],.row input[type=text]{margin-left:auto;border:none;background:transparent;text-align:right;color:var(--tint);font-weight:600;outline:none;max-width:55%}
+.row textarea{width:100%;border:none;outline:none;resize:none;background:transparent}
+.ric{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700;flex:none}
+.ric svg{width:17px;height:17px}
+.chev{color:var(--gray2)}
+.sw{position:relative;width:51px;height:31px;flex:none;margin-left:auto}
+.sw input{opacity:0;width:0;height:0}
+.sw i{position:absolute;inset:0;background:rgba(120,120,128,.22);border-radius:100px;transition:.2s;cursor:pointer}
+.sw i::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;background:#fff;border-radius:50%;box-shadow:0 2px 7px rgba(0,0,0,.28);transition:.2s}
+.sw input:checked + i{background:var(--green)}
+.sw input:checked + i::after{left:22px}
+
+/* ---- floating liquid-glass tab bar ---- */
+.tabbar{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:50;
+  display:flex;align-items:center;gap:2px;padding:8px;border-radius:100px;
+  background:rgba(255,255,255,.55);backdrop-filter:blur(34px) saturate(2);-webkit-backdrop-filter:blur(34px) saturate(2);
+  border:1px solid rgba(255,255,255,.8);
+  box-shadow:0 14px 44px rgba(12,35,38,.22), inset 0 1.5px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(255,255,255,.35)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:700;color:#5c676d;
+  padding:8px 13px;border-radius:100px;position:relative;transition:.2s;min-width:62px}
+.tab svg{width:23px;height:23px;stroke-width:1.8}
+.tab.on{color:var(--tint);background:rgba(10,122,108,.13)}
+.tab .bdg{position:absolute;top:2px;right:8px;background:var(--red);color:#fff;font-size:9.5px;font-weight:800;border-radius:100px;padding:1px 5px;min-width:15px;text-align:center}
+.tab-sell{width:54px;height:54px;min-width:54px;padding:0;border-radius:50%;align-items:center;justify-content:center;
+  background:linear-gradient(150deg,var(--tint2),var(--tint));color:#fff;margin:0 4px;
+  box-shadow:0 8px 22px rgba(10,122,108,.45), inset 0 1.5px 0 rgba(255,255,255,.45)}
+.tab-sell svg{width:24px;height:24px;stroke-width:2.2}
+.tab-sell:active{transform:scale(.9)}
+@media(max-width:400px){.tab{min-width:54px;padding:8px 9px}}
+
+/* ---- sheets (liquid glass) ---- */
+.shade{position:fixed;inset:0;background:rgba(14,28,30,.35);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:60;opacity:0;pointer-events:none;transition:.25s}
+.shade.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;transform:translate(-50%,110%);bottom:0;width:100%;max-width:640px;z-index:70;
+  background:rgba(244,246,247,.86);backdrop-filter:blur(40px) saturate(1.9);-webkit-backdrop-filter:blur(40px) saturate(1.9);
+  border:1px solid rgba(255,255,255,.85);border-bottom:none;border-radius:30px 30px 0 0;
+  transition:transform .34s cubic-bezier(.32,.72,.35,1);max-height:93dvh;display:flex;flex-direction:column;
+  box-shadow:0 -18px 60px rgba(10,30,32,.28)}
+.sheet.open{transform:translate(-50%,0)}
+.sheet.full{height:93dvh}
+.grabber{width:40px;height:5px;border-radius:3px;background:rgba(60,70,75,.28);margin:9px auto 4px;flex:none}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:6px 18px 10px;flex:none}
+.sheet-head h3{font-size:17px;font-weight:800}
+.sheet-head .act{color:var(--tint);font-size:16px;font-weight:700}
+.sheet-body{overflow-y:auto;padding:0 16px 28px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.sheet-body::-webkit-scrollbar{display:none}
+
+/* detail */
+.gal{position:relative;aspect-ratio:16/9;border-radius:22px;overflow:hidden;margin-top:4px;flex:none;box-shadow:var(--shadow)}
+.gal svg.pic{width:100%;height:100%;display:block}
+.gal-dots{position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:6px}
+.gal-dots button{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.55)}
+.gal-dots button.on{background:#fff}
+.dclose{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;background:rgba(20,30,32,.4);
+  backdrop-filter:blur(10px);color:#fff;display:flex;align-items:center;justify-content:center;z-index:5}
+.dclose svg{width:15px;height:15px;stroke-width:2.4}
+.dhead{padding:16px 4px 4px}
+.dprice{font-size:30px;font-weight:800;letter-spacing:-.7px;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:10px}
+.dprice .torgtag{font-size:12px;color:var(--green);font-weight:800;background:rgba(52,199,89,.14);border-radius:100px;padding:4px 10px}
+.dtitle{font-size:17px;font-weight:700;color:#2c383d;margin-top:2px}
+.dgeo{font-size:13px;color:var(--gray);margin-top:4px;display:flex;align-items:center;gap:5px}
+.dgeo svg{width:13px;height:13px}
+.bonus-banner{margin:14px 0;background:linear-gradient(120deg,rgba(255,244,220,.95),rgba(255,229,182,.95));
+  border:1px solid rgba(255,193,92,.6);border-radius:var(--r-s);padding:13px 15px;display:flex;gap:12px;align-items:center;font-size:14px;box-shadow:var(--shadow)}
+.bonus-banner .bic{width:36px;height:36px;border-radius:12px;background:var(--amber);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.bonus-banner .bic svg{width:19px;height:19px}
+.bonus-banner b{font-variant-numeric:tabular-nums}
+.specwrap{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:2px 0 6px}
+@media(max-width:400px){.specwrap{grid-template-columns:1fr 1fr}}
+.spec{background:var(--card);border:1px solid var(--glass-brd);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow)}
+.spec i{display:block;font-style:normal;font-size:10.5px;color:var(--gray);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.spec b{font-size:14.5px}
+.stickybtns{position:sticky;bottom:0;padding:14px 0 calc(10px + env(safe-area-inset-bottom));display:flex;gap:9px;
+  background:linear-gradient(transparent,rgba(244,246,247,.95) 40%)}
+.btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:800;border-radius:100px;padding:15px;transition:.15s;box-shadow:0 6px 18px rgba(10,40,40,.12), inset 0 1px 0 rgba(255,255,255,.5)}
+.btn:active{transform:scale(.97)}
+.btn svg{width:18px;height:18px}
+.btn-tint{background:linear-gradient(150deg,var(--tint2),var(--tint));color:#fff}
+.btn-amber{background:linear-gradient(150deg,#FFB340,var(--amber));color:#fff}
+.btn-glass{background:var(--glass-strong);backdrop-filter:var(--blur);border:1px solid var(--glass-brd);color:var(--ink)}
+.btn:disabled{opacity:.4}
+.btn.sm{padding:9px 15px;font-size:13.5px;flex:none;box-shadow:none}
+
+.credit{margin:12px 0;background:var(--card);border:1px solid var(--glass-brd);border-radius:var(--r-s);padding:15px 16px;box-shadow:var(--shadow)}
+.credit h4{font-size:15px;font-weight:800;margin-bottom:8px}
+.credit label{font-size:13px;color:var(--gray);display:flex;justify-content:space-between;font-weight:700;margin-top:8px}
+.credit input[type=range]{width:100%;accent-color:var(--tint);margin:6px 0 2px}
+.credit .pay{font-size:23px;font-weight:800;color:var(--tint);font-variant-numeric:tabular-nums;margin-top:8px}
+
+/* ---- bonus ---- */
+.balcard{margin:4px 0 16px;background:linear-gradient(135deg,rgba(7,64,59,.95),rgba(14,113,102,.92));
+  backdrop-filter:var(--blur);border:1px solid rgba(255,255,255,.25);border-radius:var(--r);padding:22px;color:#fff;position:relative;overflow:hidden;
+  box-shadow:0 16px 44px rgba(7,64,59,.35), inset 0 1.5px 0 rgba(255,255,255,.3)}
+.balcard .shine{position:absolute;top:-60%;left:-30%;width:70%;height:220%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.16),transparent);transform:rotate(18deg)}
+.balcard .l{font-size:11.5px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#FFCE7A;display:flex;align-items:center;gap:7px}
+.balcard .l svg{width:15px;height:15px}
+.odo{display:flex;gap:4px;margin:14px 0 8px}
+.odo span{font-family:var(--mono);font-weight:700;font-size:30px;background:rgba(0,0,0,.35);border-radius:9px;padding:4px 8px;min-width:33px;text-align:center;color:#FFE2AC;border-bottom:2px solid rgba(0,0,0,.5)}
+.odo span.pulse{animation:flip .45s}
+@keyframes flip{0%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+.balcard .cap{font-size:13px;color:#BFE0DB;font-weight:500}
+.howrow{display:flex;gap:9px}
+.how{flex:1;background:var(--card);border:1px solid var(--glass-brd);border-radius:var(--r-s);padding:13px 12px;box-shadow:var(--shadow)}
+.how .n{width:28px;height:28px;border-radius:9px;background:var(--amber-soft);color:var(--amber-deep);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;margin-bottom:9px}
+.how b{font-size:13px;display:block;line-height:1.25}
+.how span{font-size:11px;color:var(--gray);font-weight:500}
+.pcard{background:var(--card);border:1px solid var(--glass-brd);border-radius:var(--r-s);margin-bottom:13px;overflow:hidden;box-shadow:var(--shadow)}
+.phead{display:flex;align-items:center;gap:12px;padding:14px 15px}
+.phead .pic2{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;flex:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.phead .pic2 svg{width:22px;height:22px}
+.phead b{font-size:15px;display:block}
+.phead span{font-size:12px;color:var(--gray);font-weight:500}
+.pitem{display:flex;align-items:center;gap:8px;padding:11px 15px;position:relative}
+.pitem::before{content:"";position:absolute;top:0;left:15px;right:0;height:.5px;background:var(--line)}
+.pitem .nm{font-size:14px;flex:1;font-weight:500}
+.pitem .bp{font-size:13px;font-weight:800;color:var(--amber-deep);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pitem button{background:var(--tint);color:#fff;font-size:13px;font-weight:800;border-radius:100px;padding:7px 14px}
+.pitem button:disabled{background:var(--gray2)}
+.tx{display:flex;justify-content:space-between;gap:8px;padding:12px 16px;font-size:14px;position:relative;font-weight:500}
+.tx + .tx::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--line)}
+.tx b{font-variant-numeric:tabular-nums}
+.tx .p{color:var(--green)} .tx .m{color:var(--red)}
+
+/* profile */
+.avatar-big{width:78px;height:78px;border-radius:50%;background:linear-gradient(150deg,var(--tint2),var(--tint));color:#fff;font-size:30px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:10px auto 10px;box-shadow:0 10px 26px rgba(10,122,108,.35), inset 0 2px 0 rgba(255,255,255,.4)}
+.pname{text-align:center;font-size:21px;font-weight:800}
+.pmail{text-align:center;font-size:13px;color:var(--gray);margin-bottom:4px;font-weight:500}
+.mycar{display:flex;gap:12px;align-items:center;padding:12px 15px;position:relative}
+.mycar + .mycar::before{content:"";position:absolute;top:0;left:15px;right:0;height:.5px;background:var(--line)}
+.mycar .th{width:68px;height:46px;border-radius:11px;overflow:hidden;flex:none}
+.mycar .th svg{width:100%;height:100%}
+.mycar b{font-size:14px;display:block}
+.mycar span{font-size:12px;color:var(--gray);font-weight:500}
+
+/* misc */
+.swatches{display:flex;gap:10px;padding:13px 16px;flex-wrap:wrap}
+.swb{width:34px;height:34px;border-radius:50%;border:3px solid transparent;box-shadow:inset 0 2px 4px rgba(0,0,0,.15)}
+.swb.on{border-color:var(--tint)}
+.chatlog{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:78%;padding:10px 14px;border-radius:19px;font-size:15px;line-height:1.35}
+.msg.me{align-self:flex-end;background:linear-gradient(150deg,var(--tint2),var(--tint));color:#fff;border-bottom-right-radius:6px}
+.msg.them{align-self:flex-start;background:rgba(255,255,255,.9);border-bottom-left-radius:6px;box-shadow:var(--shadow)}
+.chatin{display:flex;gap:9px;padding:10px 14px calc(14px + env(safe-area-inset-bottom));flex:none}
+.chatin input{flex:1;border:1px solid var(--glass-brd);background:rgba(255,255,255,.85);border-radius:100px;padding:11px 17px;outline:none}
+.chatin button{width:44px;height:44px;border-radius:50%;background:var(--tint);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.chatin button svg{width:18px;height:18px}
+#toasts{position:fixed;top:14px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:120;pointer-events:none}
+.toast{display:flex;align-items:center;gap:9px;background:rgba(24,30,32,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:12px 20px;font-size:14px;font-weight:700;
+  box-shadow:0 14px 40px rgba(0,0,0,.35);animation:tIn .3s;max-width:88%;text-align:center}
+.toast svg{width:16px;height:16px;flex:none}
+.toast.gold{background:rgba(255,159,10,.94);color:#3d2600;border-color:rgba(255,255,255,.5)}
+@keyframes tIn{from{transform:translateY(-16px);opacity:0}to{transform:none;opacity:1}}
+</style>
+</head>
+<body>
+<div class="ambient"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<div class="app">
+  <div class="content" id="content">
+    <div class="topbar">
+      <div class="brand"><span class="mark">
+        <svg class="i" viewBox="0 0 24 24"><path d="M4 15l1.5-5.2A2.5 2.5 0 0 1 7.9 8h8.2a2.5 2.5 0 0 1 2.4 1.8L20 15M4 15h16M4 15v3.4a1 1 0 0 0 1 1h1.4a1 1 0 0 0 1-1V17h9.2v1.4a1 1 0 0 0 1 1H19a1 1 0 0 0 1-1V15M7.5 12.4h.01M16.5 12.4h.01"/></svg>
+      </span>PEREKUPLYU</div>
+      <div class="spacer"></div>
+      <button class="balpill" id="balpill" onclick="go('bonus')" aria-label="Бонусный счёт">
+        <svg class="i" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="3"/><path d="M3 12.5h18M12 8v12M12 8s-.8-4-3.6-4S5.8 8 8.6 8M12 8s.8-4 3.6-4S18.2 8 15.4 8"/></svg>
+        <span class="b" id="balHead">0 Б</span>
+      </button>
+    </div>
+
+    <!-- ============ HOME ============ -->
+    <section class="page on" id="pg-home">
+      <div class="large-title">Поиск авто</div>
+      <div class="subtitle">4% от цены вернём бонусами PereBonus</div>
+      <div class="searchwrap">
+        <div class="search">
+          <svg class="i" viewBox="0 0 24 24" style="font-size:17px"><circle cx="11" cy="11" r="7"/><path d="m20.5 20.5-4-4"/></svg>
+          <input id="q" type="search" placeholder="Марка или модель" oninput="applyFilters()">
+        </div>
+        <button class="gbtn" onclick="openSheet('sh-filters')" aria-label="Фильтры">
+          <svg class="i" viewBox="0 0 24 24"><path d="M5 7h14M8 12h8M10.5 17h3"/></svg>
+          <span class="dot" id="fdot" style="display:none"></span>
+        </button>
+      </div>
+      <div class="seg" id="sortSeg">
+        <button class="on" onclick="setSort('new',this)">Новые</button>
+        <button onclick="setSort('cheap',this)">Дешевле</button>
+        <button onclick="setSort('exp',this)">Дороже</button>
+        <button onclick="setSort('km',this)">Пробег</button>
+      </div>
+      <div class="chips" id="brandChips"></div>
+      <div class="cards" id="grid"></div>
+      <div class="empty" id="noRes" style="display:none">
+        <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20.5 20.5-4-4M8 11h6"/></svg>
+        <b>Ничего не найдено</b>Смягчите фильтры или измените запрос
+      </div>
+    </section>
+
+    <!-- ============ FAVORITES ============ -->
+    <section class="page" id="pg-fav">
+      <div class="large-title">Избранное</div>
+      <div class="subtitle">Сохранённые машины и сравнение</div>
+      <div id="cmpWrap" style="display:none;padding-bottom:14px">
+        <button class="btn btn-glass" style="width:100%" onclick="openCompare()">
+          <svg class="i" viewBox="0 0 24 24"><path d="M12 3v18M7 7H4.5L2 13a3 3 0 0 0 6 0L5.5 7H12m6.5 0H16l-2.5 6a3 3 0 0 0 6 0L17 7h-5"/></svg>
+          Сравнить избранные (<span id="cmpN">0</span>)</button>
+      </div>
+      <div class="cards" id="favGrid"></div>
+      <div class="empty" id="favEmpty">
+        <svg class="i" viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.3 7.7 3.6 4.5 7 4.5c2.2 0 3.9 1.2 5 3 1.1-1.8 2.8-3 5-3 3.4 0 5.7 3.2 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>
+        <b>Пока пусто</b>Нажимайте сердечко на карточках — они появятся здесь
+      </div>
+    </section>
+
+    <!-- ============ SELL ============ -->
+    <section class="page" id="pg-sell">
+      <div class="large-title">Продать авто</div>
+      <div class="subtitle">Бесплатное размещение · сразу в каталоге</div>
+      <div class="group-h">Автомобиль</div>
+      <div class="group">
+        <div class="row"><span class="lbl">Марка</span><input type="text" id="sBrand" placeholder="Toyota"></div>
+        <div class="row"><span class="lbl">Модель</span><input type="text" id="sModel" placeholder="Camry"></div>
+        <div class="row"><span class="lbl">Год</span><input type="number" id="sYear" placeholder="2018"></div>
+        <div class="row"><span class="lbl">Пробег, км</span><input type="number" id="sKm" placeholder="85 000"></div>
+        <div class="row"><span class="lbl">Коробка</span><select id="sGear"><option>Автомат</option><option>Механика</option></select></div>
+        <div class="row"><span class="lbl">Кузов</span><select id="sBody"><option>Седан</option><option>Хэтчбек</option><option>Кроссовер</option><option>Универсал</option></select></div>
+        <div class="row"><span class="lbl">Город</span><input type="text" id="sCity" placeholder="Москва"></div>
+      </div>
+      <div class="group-h">Цена</div>
+      <div class="group">
+        <div class="row"><span class="lbl">Цена, ₽</span><input type="number" id="sPrice" placeholder="1 250 000" oninput="sellHint()"></div>
+        <div class="row"><span class="lbl">Готов к торгу</span><label class="sw"><input type="checkbox" id="sTorg"><i></i></label></div>
+      </div>
+      <div class="bonus-banner" id="sellB" style="display:none">
+        <span class="bic"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M4 13h16M12 9v11M12 9s-1-4.5-4-4.5S6 9 9 9m3 0s1-4.5 4-4.5S18 9 15 9"/></svg></span>
+        <div>Покупатель получит <b id="sellBV">0 Б</b> — такие объявления открывают на 30% чаще</div>
+      </div>
+      <div class="group-h">Цвет превью</div>
+      <div class="group"><div class="swatches" id="swatches"></div></div>
+      <div class="group-h">Описание</div>
+      <div class="group"><div class="row"><textarea id="sDesc" rows="3" placeholder="Один владелец, обслуживание у дилера…"></textarea></div></div>
+      <div style="padding-top:18px">
+        <button class="btn btn-tint" style="width:100%" onclick="submitCar()">Опубликовать объявление</button>
+      </div>
+    </section>
+
+    <!-- ============ BONUS ============ -->
+    <section class="page" id="pg-bonus">
+      <div class="large-title">PereBonus</div>
+      <div class="subtitle">1 бонус = 1 ₽ у партнёров · не сгорают 12 мес.</div>
+      <div class="balcard"><div class="shine"></div>
+        <div class="l"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="3"/><path d="M3 12.5h18M12 8v12"/></svg> Ваш баланс</div>
+        <div class="odo" id="odo"></div>
+        <div class="cap">Купите авто за 250 000 ₽ — получите ровно 10 000 Б (4%)</div>
+      </div>
+      <div class="howrow">
+        <div class="how"><div class="n">1</div><b>Купите авто</b><span>любое из каталога</span></div>
+        <div class="how"><div class="n">2</div><b>Получите 4%</b><span>сразу после сделки</span></div>
+        <div class="how"><div class="n">3</div><b>Тратьте</b><span>у партнёров ниже</span></div>
+      </div>
+      <div class="sect-t">Партнёры</div>
+      <div id="partners"></div>
+      <div class="sect-t">История операций</div>
+      <div class="group" id="txlist" style="margin-bottom:16px"></div>
+      <div class="empty" id="txEmpty" style="padding-top:14px">
+        <svg class="i" viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.4L14 21l-2-1.4L10 21l-2-1.4L6 21V3zM9 8h6M9 12h6"/></svg>
+        <b>Операций нет</b>Купите автомобиль — появится первое начисление
+      </div>
+    </section>
+
+    <!-- ============ PROFILE ============ -->
+    <section class="page" id="pg-profile">
+      <div class="large-title">Профиль</div>
+      <div class="avatar-big">А</div>
+      <div class="pname">Алекс Покупатель</div>
+      <div class="pmail">на Perekuplyu с июля 2026</div>
+      <div class="group-h">Мой гараж (куплено здесь)</div>
+      <div class="group" id="garage"></div>
+      <div class="empty" id="garEmpty" style="padding:20px">
+        <svg class="i" viewBox="0 0 24 24"><path d="M4 15l1.5-5.2A2.5 2.5 0 0 1 7.9 8h8.2a2.5 2.5 0 0 1 2.4 1.8L20 15M4 15h16M4 15v3.4a1 1 0 0 0 1 1h1.4a1 1 0 0 0 1-1V17h9.2v1.4a1 1 0 0 0 1 1H19a1 1 0 0 0 1-1V15"/></svg>
+        <b>Гараж пуст</b>Купленные машины появятся здесь
+      </div>
+      <div class="group-h">Мои объявления</div>
+      <div class="group" id="myAds"></div>
+      <div class="empty" id="adsEmpty" style="padding:20px">
+        <svg class="i" viewBox="0 0 24 24"><path d="M3 11l14-5v12L3 13v-2zM17 8.5c2 .3 3.5 1.7 3.5 3.5s-1.5 3.2-3.5 3.5M7 13.5V18a1.5 1.5 0 0 0 3 0v-3.6"/></svg>
+        <b>Объявлений нет</b>Разместите первое кнопкой «+»
+      </div>
+      <div class="group-h">Настройки</div>
+      <div class="group">
+        <div class="row"><span class="ric" style="background:var(--red)"><svg class="i" viewBox="0 0 24 24"><path d="M18 9a6 6 0 1 0-12 0c0 6-2.5 7-2.5 7h17S18 15 18 9zM10 19.5a2.2 2.2 0 0 0 4 0"/></svg></span><span class="lbl">Снижение цены избранного</span><label class="sw"><input type="checkbox" checked><i></i></label></div>
+        <div class="row"><span class="ric" style="background:#0A84FF"><svg class="i" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3.2 8.4-7 10-3.8-1.6-7-5-7-10V6l7-3zM9 12l2 2 4-4.5"/></svg></span><span class="lbl">Только VIN‑проверенные</span><label class="sw"><input type="checkbox" id="pfCheck" onchange="document.getElementById('fCheck').checked=this.checked;applyFilters()"><i></i></label></div>
+        <div class="row"><span class="ric" style="background:#5E6B72"><svg class="i" viewBox="0 0 24 24"><path d="M20 13.5A8 8 0 0 1 10.5 4 8 8 0 1 0 20 13.5z"/></svg></span><span class="lbl">Тёмная тема</span><span class="val">скоро <svg class="i chev" viewBox="0 0 24 24" style="font-size:14px"><path d="m9 5 7 7-7 7"/></svg></span></div>
+      </div>
+      <div style="height:24px"></div>
+    </section>
+  </div>
+
+  <!-- ============ FLOATING TAB BAR ============ -->
+  <div class="tabbar">
+    <button class="tab on" data-t="home" onclick="go('home')">
+      <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20.5 20.5-4-4"/></svg>Поиск</button>
+    <button class="tab" data-t="fav" onclick="go('fav')">
+      <svg class="i" viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.3 7.7 3.6 4.5 7 4.5c2.2 0 3.9 1.2 5 3 1.1-1.8 2.8-3 5-3 3.4 0 5.7 3.2 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>Избранное<span class="bdg" id="favCnt" style="display:none">0</span></button>
+    <button class="tab tab-sell" data-t="sell" onclick="go('sell')" aria-label="Продать">
+      <svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button class="tab" data-t="bonus" onclick="go('bonus')">
+      <svg class="i" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="3"/><path d="M3 12.5h18M12 8v12M12 8s-.8-4-3.6-4S5.8 8 8.6 8M12 8s.8-4 3.6-4S18.2 8 15.4 8"/></svg>Бонусы<span class="bdg" id="bonBdg" style="display:none"></span></button>
+    <button class="tab" data-t="profile" onclick="go('profile')">
+      <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20.5c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg>Профиль</button>
+  </div>
+
+  <!-- ============ SHEETS ============ -->
+  <div class="shade" id="shade" onclick="closeAllSheets()"></div>
+
+  <div class="sheet" id="sh-filters">
+    <div class="grabber"></div>
+    <div class="sheet-head"><button class="act" onclick="resetFilters()">Сбросить</button><h3>Фильтры</h3><button class="act" onclick="closeAllSheets()">Готово</button></div>
+    <div class="sheet-body">
+      <div class="group-h">Цена, ₽</div>
+      <div class="group">
+        <div class="row"><span class="lbl">От</span><input type="number" id="fPmin" placeholder="0" oninput="applyFilters()"></div>
+        <div class="row"><span class="lbl">До</span><input type="number" id="fPmax" placeholder="∞" oninput="applyFilters()"></div>
+      </div>
+      <div class="group-h">Параметры</div>
+      <div class="group">
+        <div class="row"><span class="lbl">Год, от</span><select id="fYear" onchange="applyFilters()"><option value="">Любой</option><option>2020</option><option>2017</option><option>2014</option><option>2010</option></select></div>
+        <div class="row"><span class="lbl">Пробег до</span><select id="fKm" onchange="applyFilters()"><option value="">Любой</option><option value="50000">50 000 км</option><option value="100000">100 000 км</option><option value="150000">150 000 км</option><option value="200000">200 000 км</option></select></div>
+        <div class="row"><span class="lbl">Коробка</span><select id="fGear" onchange="applyFilters()"><option value="">Любая</option><option>Автомат</option><option>Механика</option></select></div>
+        <div class="row"><span class="lbl">Кузов</span><select id="fBody" onchange="applyFilters()"><option value="">Любой</option><option>Седан</option><option>Хэтчбек</option><option>Кроссовер</option><option>Универсал</option></select></div>
+      </div>
+      <div class="group-h">Доверие</div>
+      <div class="group">
+        <div class="row"><span class="lbl">Проверен по VIN</span><label class="sw"><input type="checkbox" id="fCheck" onchange="applyFilters()"><i></i></label></div>
+        <div class="row"><span class="lbl">Возможен торг</span><label class="sw"><input type="checkbox" id="fTorg" onchange="applyFilters()"><i></i></label></div>
+      </div>
+      <div style="padding-top:18px">
+        <button class="btn btn-tint" style="width:100%" onclick="closeAllSheets()">Показать <span id="foundN2" style="margin-left:4px"></span></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet full" id="sh-car"><div class="sheet-body" id="carBody" style="padding-top:10px"></div></div>
+
+  <div class="sheet" id="sh-buy"><div class="grabber"></div><div class="sheet-body" id="buyBody"></div></div>
+
+  <div class="sheet full" id="sh-cmp">
+    <div class="grabber"></div>
+    <div class="sheet-head"><span></span><h3>Сравнение</h3><button class="act" onclick="closeAllSheets()">Готово</button></div>
+    <div class="sheet-body" id="cmpBody"></div>
+  </div>
+
+  <div class="sheet full" id="sh-chat" style="height:82dvh">
+    <div class="grabber"></div>
+    <div class="sheet-head"><span></span><h3 id="chatTitle">Чат</h3><button class="act" onclick="closeAllSheets()">Закрыть</button></div>
+    <div class="chatlog" id="chatlog"></div>
+    <div class="chatin">
+      <input id="chatInput" placeholder="Сообщение…" onkeydown="if(event.key==='Enter')sendMsg()">
+      <button onclick="sendMsg()" aria-label="Отправить"><svg class="i" viewBox="0 0 24 24"><path d="M4 12L20 4l-4.5 16-4-6.5L4 12z"/></svg></button>
+    </div>
+  </div>
+
+  <div id="toasts"></div>
+</div>
+
+<script>
+/* ================= ICONS ================= */
+const IC={
+ heart:'<path d="M12 20.5s-7.5-4.6-9.3-9.2C1.3 7.7 3.6 4.5 7 4.5c2.2 0 3.9 1.2 5 3 1.1-1.8 2.8-3 5-3 3.4 0 5.7 3.2 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/>',
+ gift:'<rect x="4" y="9" width="16" height="11" rx="2"/><path d="M4 13h16M12 9v11M12 9s-1-4.5-4-4.5S6 9 9 9m3 0s1-4.5 4-4.5S18 9 15 9"/>',
+ pin:'<path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/>',
+ star:'<path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-3-5.4 3 1.1-6L3.2 9.4l6.1-.8L12 3z"/>',
+ check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+ shield:'<path d="M12 3l7 3v5c0 5-3.2 8.4-7 10-3.8-1.6-7-5-7-10V6l7-3zM9 12l2 2 4-4.5"/>',
+ phone:'<path d="M6.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 5.7 2 2 0 0 1 6.5 3.5z"/>',
+ chat:'<path d="M21 12a8 8 0 0 1-8 8H4l2-3.2A8 8 0 1 1 21 12z"/>',
+ flame:'<path d="M12 3s5.5 4.2 5.5 9.5a5.5 5.5 0 0 1-11 0C6.5 9 9 7.5 9 5c1.5 1 2 2.5 2 4 1-.8 1-3 1-6z"/>',
+ car:'<path d="M4 15l1.5-5.2A2.5 2.5 0 0 1 7.9 8h8.2a2.5 2.5 0 0 1 2.4 1.8L20 15M4 15h16M4 15v3.4a1 1 0 0 0 1 1h1.4a1 1 0 0 0 1-1V17h9.2v1.4a1 1 0 0 0 1 1H19a1 1 0 0 0 1-1V15M7.5 12.4h.01M16.5 12.4h.01"/>',
+ wrench:'<path d="M14.5 6.5a4 4 0 0 0-5.6 4.9L3.5 16.8a2 2 0 1 0 2.8 2.8l5.4-5.4a4 4 0 0 0 4.9-5.6l-2.6 2.6-2.3-.6-.6-2.3 2.4-2.4z"/>',
+ drop:'<path d="M12 3.5S6 10 6 14a6 6 0 0 0 12 0c0-4-6-10.5-6-10.5z"/><path d="M9.5 14.5a2.6 2.6 0 0 0 2 2.6"/>',
+ tire:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/><path d="M12 3.5v5M12 15.5v5M3.5 12h5M15.5 12h5"/>',
+ spark:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"/>',
+ doc:'<path d="M7 3h7l4 4v14H7V3zM14 3v4h4M10 12h5M10 16h5"/>',
+ x:'<path d="M6 6l12 12M18 6L6 18"/>',
+ chev:'<path d="m9 5 7 7-7 7"/>',
+ wallet:'<rect x="3" y="8" width="18" height="12" rx="3"/><path d="M3 12.5h18M12 8v12"/>',
+ party:'<path d="M5 19l3-9 6 6-9 3zM13 6.5l1-2M17.5 9l2-.7M15.5 12.5l3 1M11 5l2.5 2.5"/>',
+ key:'<circle cx="8" cy="14" r="4.5"/><path d="M11.5 10.5L20 3M16 5.5l2.5 2.5M13.5 8l2 2"/>'
+};
+const ic=(n,s)=>`<svg class="i" viewBox="0 0 24 24" ${s?`style="font-size:${s}px"`:''}>${IC[n]}</svg>`;
+
+/* ================= DATA ================= */
+const RATE=0.04;
+const fmt=n=>n.toLocaleString('ru-RU');
+const bonusOf=p=>Math.round(p*RATE);
+
+const CARS=[
+ {id:1,brand:'Toyota',model:'Camry 3.5',year:2021,price:2450000,km:64000,gear:'Автомат',body:'Седан',fuel:'Бензин 3.5',drive:'Передний',owners:1,color:'#22313B',bg:['#B9CBD3','#8FA8B4'],city:'Москва',checked:true,torg:false,hot:false,vin:'XW7BF4FK50S0*****',seller:'Автосалон «Прайм»',stype:'Дилер',rating:4.9,posted:2,desc:'Комплектация Executive. Один владелец, все ТО у дилера. Зимний пакет, вентиляция сидений.'},
+ {id:2,brand:'Lada',model:'Vesta SW Cross',year:2020,price:1090000,km:78000,gear:'Механика',body:'Универсал',fuel:'Бензин 1.6',drive:'Передний',owners:2,color:'#B34A21',bg:['#E8DCC8','#CBB893'],city:'Казань',checked:true,torg:true,hot:false,vin:'XTAGFK330LY*****',seller:'Ильдар',stype:'Частник',rating:4.6,posted:1,desc:'Люкс, обогревы всего. Вложений не требует. Реальному покупателю — торг у капота.'},
+ {id:3,brand:'Kia',model:'Rio 1.6 AT',year:2019,price:1150000,km:92000,gear:'Автомат',body:'Седан',fuel:'Бензин 1.6',drive:'Передний',owners:1,color:'#8A1E2D',bg:['#D8D3CB','#ABA79E'],city:'Санкт‑Петербург',checked:true,torg:true,hot:true,vin:'Z94C241BAKR*****',seller:'Марина',stype:'Частник',rating:4.8,posted:0,desc:'Гаражное хранение, не бита, не крашена (толщиномер). Зимняя резина на дисках в подарок.'},
+ {id:4,brand:'Hyundai',model:'Solaris 1.4',year:2017,price:830000,km:134000,gear:'Механика',body:'Седан',fuel:'Бензин 1.4',drive:'Передний',owners:2,color:'#C7CDD4',bg:['#9EB6C4','#6E8D9E'],city:'Екатеринбург',checked:false,torg:true,hot:false,vin:'Z94CT41CBHR*****',seller:'Сергей',stype:'Частник',rating:4.3,posted:4,desc:'Честный пробег, сервисная история на руках. Масло не ест, коробка чёткая.'},
+ {id:5,brand:'Volkswagen',model:'Polo 1.6 AT',year:2020,price:1270000,km:58000,gear:'Автомат',body:'Седан',fuel:'Бензин 1.6',drive:'Передний',owners:1,color:'#1B2A6B',bg:['#CFD6DE','#9AA6B4'],city:'Москва',checked:true,torg:false,hot:false,vin:'XW8ZZZ61ZLG*****',seller:'CarTrade',stype:'Дилер',rating:4.7,posted:3,desc:'Комплектация Status. Диагностика по 110 пунктам, юридически чист, ПТС оригинал.'},
+ {id:6,brand:'Skoda',model:'Octavia 1.4 TSI',year:2018,price:1490000,km:101000,gear:'Автомат',body:'Универсал',fuel:'Бензин 1.4T',drive:'Передний',owners:2,color:'#3E5641',bg:['#DCE3D5','#B0BCA4'],city:'Н. Новгород',checked:true,torg:true,hot:false,vin:'XW8AC2NE0JK*****',seller:'Алексей',stype:'Частник',rating:4.5,posted:6,desc:'Огромный багажник, 6.5 л по трассе. Цепь ГРМ и помпа заменены на 95 тыс., чеки есть.'},
+ {id:7,brand:'BMW',model:'320d xDrive',year:2020,price:3390000,km:74000,gear:'Автомат',body:'Седан',fuel:'Дизель 2.0',drive:'Полный',owners:1,color:'#111418',bg:['#C8C9CE','#8E9097'],city:'Москва',checked:true,torg:false,hot:true,vin:'WBA5R7100LF*****',seller:'BMW Premium',stype:'Дилер',rating:5.0,posted:1,desc:'M Sport, лазерная оптика, проекция. Гарантия дилера до 2027, полная история BMW.'},
+ {id:8,brand:'Ford',model:'Focus III 1.6',year:2014,price:640000,km:168000,gear:'Механика',body:'Хэтчбек',fuel:'Бензин 1.6',drive:'Передний',owners:3,color:'#1F6FB2',bg:['#E3E0D6','#B8B4A6'],city:'Воронеж',checked:false,torg:true,hot:false,vin:'X9FKXXEEBKE*****',seller:'Дмитрий',stype:'Частник',rating:4.1,posted:9,desc:'Рабочая лошадка. Подвеска перебрана, сцепление новое. Пара царапин — цена с учётом.'},
+ {id:9,brand:'Mazda',model:'CX-5 2.0 AT',year:2019,price:2180000,km:88000,gear:'Автомат',body:'Кроссовер',fuel:'Бензин 2.0',drive:'Полный',owners:1,color:'#7A1420',bg:['#D9CFC5','#AC9F91'],city:'Краснодар',checked:true,torg:true,hot:false,vin:'RUMKE497600*****',seller:'Анна',stype:'Частник',rating:4.9,posted:2,desc:'Supreme, кожа, BOSE. Только ОД, ни одного окраса. Продаю сама, без перекупов.'},
+ {id:10,brand:'Renault',model:'Duster 2.0 4WD',year:2018,price:1180000,km:112000,gear:'Механика',body:'Кроссовер',fuel:'Бензин 2.0',drive:'Полный',owners:2,color:'#9A6B2F',bg:['#D6DFCE','#A8B79A'],city:'Уфа',checked:true,torg:true,hot:false,vin:'X7LHSRGAN60*****',seller:'Рустем',stype:'Частник',rating:4.4,posted:5,desc:'Честный полный привод. Защита картера, фаркоп, новая грязевая резина. Обслужен.'},
+ {id:11,brand:'Chery',model:'Tiggo 7 Pro',year:2022,price:1750000,km:34000,gear:'Автомат',body:'Кроссовер',fuel:'Бензин 1.5T',drive:'Передний',owners:1,color:'#5A6570',bg:['#CBD8DC','#93A8AE'],city:'Самара',checked:true,torg:false,hot:true,vin:'LVVDB21B6NE*****',seller:'Авто‑Град',stype:'Дилер',rating:4.6,posted:0,desc:'Заводская гарантия до 2029. Панорама, камеры 360, вентиляция сидений. Как новый.'},
+ {id:12,brand:'Lada',model:'Granta седан',year:2016,price:250000,km:189000,gear:'Механика',body:'Седан',fuel:'Бензин 1.6',drive:'Передний',owners:3,color:'#E8E4DC',bg:['#B9C6CB','#8CA0A8'],city:'Челябинск',checked:false,torg:true,hot:true,vin:'XTA219010G0*****',seller:'Виктор',stype:'Частник',rating:4.0,posted:7,desc:'Первая машина за свои деньги. Двигатель сухой, коробка без воя. Купите за 250 000 ₽ — получите ровно 10 000 бонусов!'}
+];
+let nextId=13;
+
+const PARTNERS=[
+ {name:'АвтоЗапчасть+',cat:'Запчасти и расходники',icon:'wrench',grad:['#0A7A6C','#12A08E'],items:[['Тормозные колодки, комплект',3200],['Масло + фильтр (ТО)',4800],['Аккумулятор 60 Ач',7500]]},
+ {name:'Мойка «Блеск»',cat:'Автомойка',icon:'drop',grad:['#1F6FB2','#3E93D6'],items:[['Комплексная мойка',900],['Мойка + химчистка ковров',2400],['Абонемент на 10 моек',7000]]},
+ {name:'ШинМастер',cat:'Шиномонтаж и шины',icon:'tire',grad:['#3A3F45','#5A6570'],items:[['Переобувка R16',2600],['Балансировка 4 колёс',1400],['Хранение шин, сезон',3500]]},
+ {name:'Детейлинг ПРО',cat:'Детейлинг',icon:'spark',grad:['#8A1E2D','#B34A55'],items:[['Полировка фар',2000],['Керамика кузова, 1 слой',9500],['Химчистка салона',6500]]}
+];
+
+/* ================= STATE ================= */
+let balance=0, favs=new Set(), txs=[], garage=[], myAds=[];
+let sortMode='new', brandFilter='', currentCar=null, chatCar=null, sellColor='#8A1E2D';
+
+/* ================= HELPERS ================= */
+function shade(hex,p){const n=parseInt(hex.slice(1),16);let r=(n>>16)+p,g=((n>>8)&255)+p,b=(n&255)+p;
+ r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b));
+ return '#'+((r<<16)|(g<<8)|b).toString(16).padStart(6,'0');}
+function carSVG(c,k){
+ const [g1,g2]=c.bg,u=c.id+'_'+(k||'a');
+ return `<svg class="pic" viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${c.brand} ${c.model}">
+  <defs><linearGradient id="s${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${g1}"/><stop offset="1" stop-color="${g2}"/></linearGradient>
+  <linearGradient id="p${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c.color}"/><stop offset="1" stop-color="${shade(c.color,-28)}"/></linearGradient></defs>
+  <rect width="400" height="220" fill="url(#s${u})"/>
+  <rect y="176" width="400" height="44" fill="#2E3538"/><rect y="176" width="400" height="4" fill="rgba(255,255,255,.25)"/>
+  <ellipse cx="200" cy="182" rx="150" ry="10" fill="rgba(0,0,0,.28)"/>
+  <path d="M48 158 C52 132 76 122 112 117 L148 84 C158 72 182 66 214 66 L262 69 C288 72 310 90 324 108 L356 116 C370 120 376 134 372 150 L366 162 L48 162 Z" fill="url(#p${u})"/>
+  <path d="M152 88 L212 84 L212 116 L128 116 Z" fill="#BFD9DE" opacity=".92"/>
+  <path d="M222 84 L268 88 C284 92 298 102 306 112 L222 114 Z" fill="#A9C6CC" opacity=".92"/>
+  <rect x="52" y="128" width="26" height="9" rx="4" fill="#FFE2A0"/><rect x="342" y="126" width="22" height="9" rx="4" fill="#E8574B"/>
+  <circle cx="122" cy="162" r="26" fill="#15181A"/><circle cx="122" cy="162" r="12" fill="#C9CFD3"/><circle cx="122" cy="162" r="5" fill="#3B4247"/>
+  <circle cx="302" cy="162" r="26" fill="#15181A"/><circle cx="302" cy="162" r="12" fill="#C9CFD3"/><circle cx="302" cy="162" r="5" fill="#3B4247"/>
+ </svg>`;
+}
+function toast(t,gold,icon){
+ const el=document.createElement('div');el.className='toast'+(gold?' gold':'');
+ el.innerHTML=(icon?ic(icon):'')+`<span>${t}</span>`;
+ document.getElementById('toasts').appendChild(el);
+ setTimeout(()=>{el.style.opacity='0';el.style.transition='.4s';setTimeout(()=>el.remove(),400)},3200);
+}
+function renderOdo(){
+ const el=document.getElementById('odo'),s=String(balance).padStart(6,'0');
+ el.innerHTML=[...s].map(d=>`<span>${d}</span>`).join('');
+}
+function pulseOdo(){document.querySelectorAll('#odo span').forEach(s=>s.classList.add('pulse'));}
+function updateBadges(){
+ const f=document.getElementById('favCnt');
+ f.style.display=favs.size?'block':'none';f.textContent=favs.size;
+ const b=document.getElementById('bonBdg');
+ b.style.display=balance>0?'block':'none';b.textContent=balance>=1000?Math.round(balance/1000)+'к':balance;
+ document.getElementById('balHead').textContent=fmt(balance)+' Б';
+ const bp=document.getElementById('balpill');bp.classList.remove('bump');void bp.offsetWidth;bp.classList.add('bump');
+}
+
+/* ================= NAV / SHEETS ================= */
+function go(t){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+ document.getElementById('pg-'+t).classList.add('on');
+ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+ document.getElementById('content').scrollTo({top:0});
+ if(t==='fav')renderFavs();
+ if(t==='bonus'){renderPartners();renderTxs();renderOdo();}
+ if(t==='profile'){renderGarage();renderMyAds();}
+}
+function openSheet(id){
+ document.getElementById('shade').classList.add('open');
+ document.getElementById(id).classList.add('open');
+}
+function closeAllSheets(){
+ document.getElementById('shade').classList.remove('open');
+ document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'));
+}
+
+/* ================= CATALOG ================= */
+function cardHTML(c){
+ return `<article class="card">
+  <div class="cimg" onclick="openCar(${c.id})">${carSVG(c,'c')}
+   <div class="badges">
+    ${c.checked?`<span class="badge check">${ic('check')} VIN</span>`:''}
+    ${c.hot?`<span class="badge hot">${ic('flame')} Срочно</span>`:''}
+    ${c.torg?'<span class="badge torg">Торг</span>':''}
+   </div>
+   <button class="hbt ${favs.has(c.id)?'on':''}" onclick="event.stopPropagation();toggleFav(${c.id})" aria-label="В избранное">${ic('heart')}</button>
+  </div>
+  <div class="cbody" onclick="openCar(${c.id})">
+   <div class="crow"><span class="cprice">${fmt(c.price)} ₽</span><span class="bonus-pill">${ic('gift')} +${fmt(bonusOf(c.price))} Б</span></div>
+   <div class="ctitle">${c.brand} ${c.model}, ${c.year}</div>
+   <div class="cspecs">${fmt(c.km)} км · ${c.gear} · ${c.body}</div>
+   <div class="cfoot"><span>${ic('pin')} ${c.city} · ${c.posted===0?'сегодня':c.posted+' дн.'}</span><span>${ic('star')} ${c.rating}</span></div>
+  </div></article>`;
+}
+function filtered(){
+ const q=(document.getElementById('q').value||'').toLowerCase();
+ const pmin=+document.getElementById('fPmin').value||0;
+ const pmax=+document.getElementById('fPmax').value||Infinity;
+ const yr=+document.getElementById('fYear').value||0;
+ const km=+document.getElementById('fKm').value||Infinity;
+ const gear=document.getElementById('fGear').value;
+ const body=document.getElementById('fBody').value;
+ const ck=document.getElementById('fCheck').checked;
+ const tg=document.getElementById('fTorg').checked;
+ let res=CARS.filter(c=>
+  (!q||(c.brand+' '+c.model).toLowerCase().includes(q))&&
+  (!brandFilter||c.brand===brandFilter)&&
+  c.price>=pmin&&c.price<=pmax&&c.year>=yr&&c.km<=km&&
+  (!gear||c.gear===gear)&&(!body||c.body===body)&&(!ck||c.checked)&&(!tg||c.torg));
+ if(sortMode==='cheap')res.sort((a,b)=>a.price-b.price);
+ if(sortMode==='exp')res.sort((a,b)=>b.price-a.price);
+ if(sortMode==='km')res.sort((a,b)=>a.km-b.km);
+ if(sortMode==='new')res.sort((a,b)=>a.posted-b.posted);
+ return res;
+}
+function applyFilters(){
+ const res=filtered();
+ document.getElementById('grid').innerHTML=res.map(cardHTML).join('');
+ document.getElementById('noRes').style.display=res.length?'none':'block';
+ document.getElementById('foundN2').textContent=res.length+' авто';
+ const active=+document.getElementById('fPmin').value||+document.getElementById('fPmax').value||
+  document.getElementById('fYear').value||document.getElementById('fKm').value||
+  document.getElementById('fGear').value||document.getElementById('fBody').value||
+  document.getElementById('fCheck').checked||document.getElementById('fTorg').checked;
+ document.getElementById('fdot').style.display=active?'block':'none';
+}
+function resetFilters(){
+ ['fPmin','fPmax'].forEach(i=>document.getElementById(i).value='');
+ ['fYear','fKm','fGear','fBody'].forEach(i=>document.getElementById(i).value='');
+ document.getElementById('fCheck').checked=false;document.getElementById('fTorg').checked=false;
+ document.getElementById('pfCheck').checked=false;
+ applyFilters();
+}
+function setSort(s,btn){
+ sortMode=s;
+ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',b===btn));
+ applyFilters();
+}
+function renderBrandChips(){
+ const brands=[...new Set(CARS.map(c=>c.brand))].sort();
+ document.getElementById('brandChips').innerHTML=
+  `<button class="chip ${!brandFilter?'on':''}" onclick="brandFilter='';renderBrandChips();applyFilters()">Все марки</button>`+
+  brands.map(b=>`<button class="chip ${brandFilter===b?'on':''}" onclick="brandFilter='${b}';renderBrandChips();applyFilters()">${b}</button>`).join('');
+}
+
+/* ================= FAVORITES / COMPARE ================= */
+function toggleFav(id){
+ favs.has(id)?favs.delete(id):favs.add(id);
+ updateBadges();applyFilters();renderFavs();
+ if(favs.has(id))toast('В избранном',false,'heart');
+}
+function renderFavs(){
+ const list=CARS.filter(c=>favs.has(c.id));
+ document.getElementById('favGrid').innerHTML=list.map(cardHTML).join('');
+ document.getElementById('favEmpty').style.display=list.length?'none':'block';
+ document.getElementById('cmpWrap').style.display=list.length>=2?'block':'none';
+ document.getElementById('cmpN').textContent=Math.min(list.length,3);
+}
+function openCompare(){
+ const list=CARS.filter(c=>favs.has(c.id)).slice(0,3);
+ const rows=[
+  ['Цена',c=>fmt(c.price)+' ₽',(a,b)=>a.price-b.price],
+  ['Бонусы',c=>'+'+fmt(bonusOf(c.price))+' Б',(a,b)=>b.price-a.price],
+  ['Год',c=>c.year,(a,b)=>b.year-a.year],
+  ['Пробег',c=>fmt(c.km)+' км',(a,b)=>a.km-b.km],
+  ['Коробка',c=>c.gear,null],['Привод',c=>c.drive,null],
+  ['Владельцев',c=>c.owners,(a,b)=>a.owners-b.owners],
+  ['VIN',c=>c.checked?'✓':'—',null],['Рейтинг',c=>c.rating,(a,b)=>b.rating-a.rating]];
+ let html='<div class="group" style="margin-top:4px">';
+ html+=`<div class="row"><span style="flex:1"></span>${list.map(c=>`<span style="flex:1;font-size:13px;text-align:right;font-weight:800">${c.brand}<br><span style="color:var(--gray);font-weight:500;font-size:11px">${c.model.split(' ')[0]}</span></span>`).join('')}</div>`;
+ rows.forEach(([lbl,get,best])=>{
+  let bc=null;if(best)bc=[...list].sort(best)[0];
+  html+=`<div class="row"><span style="flex:1;font-size:13px;color:var(--gray);font-weight:700">${lbl}</span>${list.map(c=>`<span style="flex:1;text-align:right;font-size:14px;${bc&&c.id===bc.id?'color:var(--tint);font-weight:800':''}">${get(c)}</span>`).join('')}</div>`;
+ });
+ html+='</div><p style="text-align:center;color:var(--gray);font-size:12px;padding:14px">Зелёным выделен лучший показатель</p>';
+ document.getElementById('cmpBody').innerHTML=html;
+ openSheet('sh-cmp');
+}
+
+/* ================= CAR DETAIL ================= */
+function openCar(id){
+ const c=CARS.find(x=>x.id===id);currentCar=c;
+ const bp=bonusOf(c.price);
+ document.getElementById('carBody').innerHTML=`
+  <div class="gal" id="gal">${carSVG(c,'d')}
+    <button class="dclose" onclick="closeAllSheets()" aria-label="Закрыть">${ic('x')}</button>
+    <div class="gal-dots">${[0,1,2].map(i=>`<button class="${i===0?'on':''}" onclick="setGal(${i})" aria-label="Фото ${i+1}"></button>`).join('')}</div>
+  </div>
+  <div class="dhead">
+    <div class="dprice">${fmt(c.price)} ₽ ${c.torg?'<span class="torgtag">торг</span>':''}</div>
+    <div class="dtitle">${c.brand} ${c.model}, ${c.year}</div>
+    <div class="dgeo">${ic('pin')} ${c.city} · ${c.posted===0?'сегодня':c.posted+' дн. назад'} · ${137+c.id*41} просмотров</div>
+  </div>
+  <div class="bonus-banner"><span class="bic">${ic('gift')}</span>
+   <div>Купите — получите <b>+${fmt(bp)} Б</b> (4%). Хватит на ${bp>=9500?'керамику кузова':bp>=4800?'полное ТО с маслом':'несколько моек'} у партнёров.</div></div>
+  <div class="specwrap">
+    <div class="spec"><i>Пробег</i><b>${fmt(c.km)} км</b></div>
+    <div class="spec"><i>Двигатель</i><b>${c.fuel}</b></div>
+    <div class="spec"><i>Коробка</i><b>${c.gear}</b></div>
+    <div class="spec"><i>Привод</i><b>${c.drive}</b></div>
+    <div class="spec"><i>Кузов</i><b>${c.body}</b></div>
+    <div class="spec"><i>Владельцев</i><b>${c.owners}</b></div>
+  </div>
+  <div class="group-h">Проверка</div>
+  <div class="group">
+    <div class="row"><span class="ric" style="background:${c.checked?'var(--green)':'var(--gray2)'}">${ic('shield')}</span>
+      <span class="lbl" style="font-size:14px">VIN: <span style="font-family:var(--mono);font-size:12.5px">${c.vin}</span><br>
+      <span style="font-size:12px;color:${c.checked?'var(--green)':'var(--gray)'};font-weight:600">${c.checked?'Чист · не в залоге · ДТП не найдено':'Отчёт не заказывался'}</span></span>
+      <button class="btn btn-glass sm" onclick="toast('Отчёт по VIN отправлен в чат',false,'doc')">Отчёт</button></div>
+  </div>
+  <div class="group-h">Продавец</div>
+  <div class="group">
+    <div class="row"><span class="ric" style="background:${c.color}">${c.seller[0]}</span>
+      <span class="lbl" style="font-size:15px">${c.seller}<br><span style="font-size:12px;color:var(--gray);font-weight:600">${c.stype} · рейтинг ${c.rating}</span></span>
+      <button class="btn btn-glass sm" id="phoneBtn" onclick="showPhone(this,${c.id})">${ic('phone')} Номер</button></div>
+  </div>
+  <div class="group-h">Описание</div>
+  <div class="group"><div class="row" style="font-size:15px;line-height:1.45;color:#2c383d">${c.desc}</div></div>
+  <div class="credit">
+    <h4>Кредит · ставка 16.9%</h4>
+    <label>Первый взнос <span id="dpLbl">20%</span></label>
+    <input type="range" id="dp" min="0" max="80" value="20" oninput="calcCredit()">
+    <label>Срок <span id="tmLbl">36 мес.</span></label>
+    <input type="range" id="tm" min="12" max="84" step="12" value="36" oninput="calcCredit()">
+    <div class="pay" id="payOut">—</div>
+    <div style="font-size:12px;color:var(--gray);font-weight:600">платёж в месяц, предварительно</div>
+  </div>
+  <div class="stickybtns">
+    <button class="btn btn-glass" style="flex:0 0 auto;padding:15px 18px" onclick="openChat(${c.id})" aria-label="Чат">${ic('chat')}</button>
+    <button class="btn btn-amber" onclick="openBuy(${c.id})">${ic('key')} Купить · +${fmt(bp)} Б</button>
+  </div>`;
+ openSheet('sh-car');calcCredit();
+}
+function setGal(i){
+ const g=document.getElementById('gal');
+ const tints=['none','sepia(.25) saturate(1.2)','contrast(1.1) brightness(.92)'];
+ g.querySelector('svg.pic').style.filter=tints[i];
+ g.querySelectorAll('.gal-dots button').forEach((b,j)=>b.classList.toggle('on',i===j));
+}
+function showPhone(btn,id){btn.textContent='+7 9'+String(10+id).padStart(2,'0')+' 55'+id+'-1'+id;btn.onclick=null;}
+function calcCredit(){
+ if(!currentCar)return;
+ const dp=+document.getElementById('dp').value,tm=+document.getElementById('tm').value;
+ document.getElementById('dpLbl').textContent=dp+'%';document.getElementById('tmLbl').textContent=tm+' мес.';
+ const S=currentCar.price*(1-dp/100),r=0.169/12;
+ document.getElementById('payOut').textContent=fmt(Math.round(S*r/(1-Math.pow(1+r,-tm))))+' ₽';
+}
+
+/* ================= BUY ================= */
+function openBuy(id){
+ const c=CARS.find(x=>x.id===id),bp=bonusOf(c.price);
+ document.getElementById('buyBody').innerHTML=`
+  <div class="sheet-head" style="padding:10px 2px"><span></span><h3>Оформление покупки</h3><button class="act" onclick="closeAllSheets()">Отмена</button></div>
+  <div class="group">
+    <div class="row"><span class="ric" style="background:${c.color}">${ic('car')}</span><span class="lbl">${c.brand} ${c.model}, ${c.year}<br><span style="font-size:12px;color:var(--gray);font-weight:600">${fmt(c.km)} км · ${c.city}</span></span></div>
+    <div class="row"><span class="lbl">Цена автомобиля</span><span class="val" style="color:var(--ink);font-weight:800">${fmt(c.price)} ₽</span></div>
+    <div class="row"><span class="lbl" style="display:flex;align-items:center;gap:7px;color:var(--amber-deep);font-weight:800">${ic('gift')} Начислим бонусов</span><span class="val" style="color:var(--amber-deep);font-weight:800">+${fmt(bp)} Б</span></div>
+    <div class="row"><span class="lbl">Способ</span><span class="val">Безопасная сделка (эскроу) ${ic('chev',13)}</span></div>
+  </div>
+  <p style="padding:14px 8px 4px;font-size:12.5px;color:var(--gray);text-align:center;font-weight:500">Деньги уйдут продавцу после подписания ДКП. Бонусы зачислятся мгновенно: 1 Б = 1 ₽ у партнёров.</p>
+  <div style="padding:12px 0 calc(10px + env(safe-area-inset-bottom))">
+    <button class="btn btn-amber" style="width:100%" onclick="confirmBuy(${c.id})">Подтвердить за ${fmt(c.price)} ₽</button>
+  </div>`;
+ openSheet('sh-buy');
+}
+function confirmBuy(id){
+ const c=CARS.find(x=>x.id===id),bp=bonusOf(c.price);
+ balance+=bp;garage.unshift(c);
+ txs.unshift({t:`Покупка ${c.brand} ${c.model} · +4%`,v:bp,plus:true});
+ closeAllSheets();updateBadges();
+ toast(`Машина ваша! Начислено +${fmt(bp)} Б`,true,'party');
+ setTimeout(()=>{go('bonus');renderOdo();pulseOdo();},700);
+}
+
+/* ================= BONUS ================= */
+function renderPartners(){
+ document.getElementById('partners').innerHTML=PARTNERS.map((p,pi)=>`
+  <div class="pcard">
+   <div class="phead"><span class="pic2" style="background:linear-gradient(135deg,${p.grad[0]},${p.grad[1]})">${ic(p.icon)}</span>
+    <div><b>${p.name}</b><span>${p.cat} · оплата бонусами до 100%</span></div></div>
+   ${p.items.map((it,ii)=>`
+    <div class="pitem"><span class="nm">${it[0]}</span><span class="bp">${fmt(it[1])} Б</span>
+     <button ${balance<it[1]?'disabled':''} onclick="spend(${pi},${ii})">Купить</button></div>`).join('')}
+  </div>`).join('');
+}
+function spend(pi,ii){
+ const p=PARTNERS[pi],it=p.items[ii];
+ if(balance<it[1]){toast('Недостаточно бонусов');return;}
+ balance-=it[1];
+ txs.unshift({t:`${p.name}: ${it[0]}`,v:it[1],plus:false});
+ renderOdo();pulseOdo();renderPartners();renderTxs();updateBadges();
+ toast(`Оплачено бонусами · −${fmt(it[1])} Б`,false,'check');
+}
+function renderTxs(){
+ document.getElementById('txlist').innerHTML=txs.map(t=>`
+  <div class="tx"><span>${t.t}</span><b class="${t.plus?'p':'m'}">${t.plus?'+':'−'}${fmt(t.v)} Б</b></div>`).join('');
+ document.getElementById('txEmpty').style.display=txs.length?'none':'block';
+ document.getElementById('txlist').style.display=txs.length?'block':'none';
+}
+
+/* ================= PROFILE ================= */
+function renderGarage(){
+ document.getElementById('garage').innerHTML=garage.map(c=>`
+  <div class="mycar"><span class="th">${carSVG(c,'g')}</span>
+   <div style="flex:1"><b>${c.brand} ${c.model}</b><span>куплено · +${fmt(bonusOf(c.price))} Б начислено</span></div>
+   <span style="color:var(--green)">${ic('check',19)}</span></div>`).join('');
+ document.getElementById('garEmpty').style.display=garage.length?'none':'block';
+ document.getElementById('garage').style.display=garage.length?'block':'none';
+}
+function renderMyAds(){
+ document.getElementById('myAds').innerHTML=myAds.map(c=>`
+  <div class="mycar"><span class="th">${carSVG(c,'m')}</span>
+   <div style="flex:1"><b>${c.brand} ${c.model}</b><span>${fmt(c.price)} ₽ · активно · ${11+c.id*3} просмотров</span></div>
+   <span style="color:var(--gray2)">${ic('chev',15)}</span></div>`).join('');
+ document.getElementById('adsEmpty').style.display=myAds.length?'none':'block';
+ document.getElementById('myAds').style.display=myAds.length?'block':'none';
+}
+
+/* ================= SELL ================= */
+const SW=['#8A1E2D','#1B2A6B','#111418','#C7CDD4','#3E5641','#9A6B2F','#0A7A6C','#E8E4DC'];
+function renderSwatches(){
+ document.getElementById('swatches').innerHTML=SW.map(s=>
+  `<button type="button" class="swb ${s===sellColor?'on':''}" style="background:${s}" onclick="sellColor='${s}';renderSwatches()" aria-label="Цвет"></button>`).join('');
+}
+function sellHint(){
+ const p=+document.getElementById('sPrice').value||0,b=document.getElementById('sellB');
+ if(p>=30000){b.style.display='flex';document.getElementById('sellBV').textContent=fmt(bonusOf(p))+' Б';}
+ else b.style.display='none';
+}
+function submitCar(){
+ const g=id=>document.getElementById(id).value.trim();
+ if(!g('sBrand')||!g('sModel')||!g('sYear')||!g('sKm')||!g('sPrice')){toast('Заполните марку, модель, год, пробег и цену');return;}
+ const car={id:nextId++,brand:g('sBrand'),model:g('sModel'),year:+g('sYear'),price:+g('sPrice'),
+  km:+g('sKm'),gear:g('sGear'),body:g('sBody'),fuel:'Бензин',drive:'Передний',owners:1,
+  color:sellColor,bg:['#CFDCDF','#9BB3B8'],city:g('sCity')||'Не указан',checked:false,
+  torg:document.getElementById('sTorg').checked,hot:false,vin:'—',seller:'Вы',stype:'Частник',rating:5.0,posted:0,
+  desc:g('sDesc')||'Описание не заполнено.'};
+ CARS.unshift(car);myAds.unshift(car);
+ renderBrandChips();applyFilters();
+ ['sBrand','sModel','sYear','sKm','sPrice','sCity','sDesc'].forEach(i=>document.getElementById(i).value='');
+ document.getElementById('sTorg').checked=false;sellHint();
+ toast('Объявление опубликовано!',false,'car');
+ go('home');
+}
+
+/* ================= CHAT ================= */
+function openChat(id){
+ chatCar=CARS.find(x=>x.id===id);
+ document.getElementById('chatTitle').textContent=chatCar.seller;
+ document.getElementById('chatlog').innerHTML=
+  `<div class="msg them">Здравствуйте! Спрашивайте про ${chatCar.brand} ${chatCar.model} — на связи.</div>`;
+ openSheet('sh-chat');
+ setTimeout(()=>document.getElementById('chatInput').focus(),120);
+}
+function sendMsg(){
+ const inp=document.getElementById('chatInput'),txt=inp.value.trim();
+ if(!txt)return;
+ const log=document.getElementById('chatlog');
+ log.insertAdjacentHTML('beforeend',`<div class="msg me">${txt.replace(/</g,'&lt;')}</div>`);
+ inp.value='';log.scrollTop=log.scrollHeight;
+ const c=chatCar,low=txt.toLowerCase();
+ let r='Хороший вопрос! Машина в наличии, можно смотреть.';
+ if(low.includes('торг')||low.includes('скид'))r=c.torg?'Небольшой торг у капота возможен — приезжайте.':'Цена финальная, она уже ниже рынка.';
+ else if(low.includes('обмен'))r='Обмен рассмотрю с вашей доплатой. Что предлагаете?';
+ else if(low.includes('пробег'))r=`Пробег честный — ${fmt(c.km)} км, покажу сервисную книжку.`;
+ else if(low.includes('дтп')||low.includes('бит')||low.includes('краш'))r=c.checked?'По VIN‑отчёту ДТП не зафиксированы, окрасов нет.':'Серьёзных ДТП не было, проверяйте толщиномером при осмотре.';
+ else if(low.includes('когда')||low.includes('осмотр')||low.includes('посмотр'))r='Сегодня после 18:00 или в выходные. Где удобно встретиться?';
+ setTimeout(()=>{log.insertAdjacentHTML('beforeend',`<div class="msg them">${r}</div>`);log.scrollTop=log.scrollHeight;},650);
+}
+
+/* ================= INIT ================= */
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAllSheets();});
+renderBrandChips();applyFilters();renderSwatches();renderOdo();updateBadges();renderTxs();renderPartners();
+</script>
+</body>
+</html>
