@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Топливо Радар — Сургут</title>
+    <title>Топливо Радар</title>
 
     <!-- Leaflet + TomTom tiles -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -18,154 +18,169 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
     <style>
-        /* ===== Базовые переменные Telegram ===== */
+        /* ============================================================
+                   IOS 15+ СТИЛЬ — СВЕТЛАЯ ТЕМА, ОКРУГЛОСТИ, BLUR
+                   ============================================================ */
         :root {
-            --tg-bg: #0f0f12;
-            --tg-bg-secondary: #1c1c1e;
-            --tg-bg-card: #28282b;
-            --tg-bg-input: #3a3a3e;
-            --tg-text: #ffffff;
-            --tg-text-secondary: #8e8e93;
-            --tg-text-hint: #5c5c60;
-            --tg-accent: #5c9ce6;
-            --tg-accent-hover: #4a8cd4;
-            --tg-accent-bg: rgba(92, 156, 230, 0.15);
-            --tg-border: #3a3a3e;
-            --tg-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-            --tg-radius: 16px;
-            --tg-radius-sm: 10px;
-            --tg-radius-xs: 6px;
-            --tg-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --tg-green: #43b581;
-            --tg-orange: #faa61a;
-            --tg-red: #f04747;
-            --tg-yellow: #faa61a;
-            --tg-blue: #5c9ce6;
-            --tg-gray: #8e8e93;
+            --ios-bg: #f2f2f7;
+            --ios-bg-secondary: #ffffff;
+            --ios-bg-card: #ffffff;
+            --ios-bg-input: #e5e5ea;
+            --ios-text: #1c1c1e;
+            --ios-text-secondary: #3a3a3c;
+            --ios-text-hint: #8e8e93;
+            --ios-accent: #007aff;
+            --ios-accent-hover: #0066d9;
+            --ios-accent-bg: rgba(0, 122, 255, 0.12);
+            --ios-border: #d1d1d6;
+            --ios-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            --ios-radius: 14px;
+            --ios-radius-sm: 10px;
+            --ios-radius-xs: 8px;
+            --ios-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+            --ios-green: #34c759;
+            --ios-orange: #ff9500;
+            --ios-red: #ff3b30;
+            --ios-blue: #007aff;
+            --ios-gray: #8e8e93;
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
         }
 
-        * {
+        *,
+        *::before,
+        *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html,
         body {
-            font-family: var(--tg-font);
-            background: var(--tg-bg);
-            color: var(--tg-text);
-            height: 100vh;
-            width: 100vw;
+            height: 100%;
+            width: 100%;
             overflow: hidden;
-            position: relative;
+            font-family: var(--ios-font);
+            background: var(--ios-bg);
+            color: var(--ios-text);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        /* ===== КАРТА (Leaflet) ===== */
+        /* ===== КАРТА ===== */
         #map {
-            width: 100%;
-            height: 100%;
             position: fixed;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 1;
-            background: #1a1a1a;
+            background: #e5e5ea;
         }
 
-        /* ===== Шапка ===== */
+        /* ===== ХЕДЕР (iOS стиль) ===== */
         #app-header {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
-            background: var(--tg-bg-secondary);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(242, 242, 247, 0.85);
+            backdrop-filter: saturate(180%) blur(30px);
+            -webkit-backdrop-filter: saturate(180%) blur(30px);
             padding: 12px 16px;
-            padding-top: max(12px, env(safe-area-inset-top));
+            padding-top: calc(12px + var(--safe-top));
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid var(--tg-border);
+            border-bottom: 0.5px solid rgba(60, 60, 67, 0.12);
             min-height: 56px;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
             pointer-events: none;
         }
         #app-header * {
             pointer-events: auto;
         }
 
-        #app-header .logo {
+        .header-left {
             display: flex;
             align-items: center;
             gap: 10px;
-            font-weight: 700;
-            font-size: 18px;
-            letter-spacing: -0.3px;
         }
-        #app-header .logo i {
-            color: var(--tg-accent);
-            font-size: 22px;
-        }
-        #app-header .logo span {
-            background: linear-gradient(135deg, #5c9ce6, #7b5ce6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        #header-actions {
+        .header-left .logo-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--ios-accent);
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
         }
-        #header-actions .badge {
-            background: var(--tg-accent-bg);
-            color: var(--tg-accent);
-            font-size: 11px;
-            padding: 4px 10px;
+        .header-left .logo-text {
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: -0.5px;
+            color: var(--ios-text);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header-right .city-badge {
+            background: var(--ios-bg-input);
+            color: var(--ios-text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            padding: 5px 14px;
             border-radius: 20px;
-            font-weight: 600;
-            border: 1px solid rgba(92, 156, 230, 0.2);
+            border: 0.5px solid var(--ios-border);
             display: flex;
             align-items: center;
             gap: 4px;
         }
-        #header-actions .badge i {
-            font-size: 10px;
+        .header-right .city-badge i {
+            font-size: 11px;
+            color: var(--ios-accent);
         }
 
         .btn-icon {
-            background: var(--tg-bg-card);
+            background: var(--ios-bg-input);
             border: none;
-            color: var(--tg-text);
-            width: 38px;
-            height: 38px;
+            color: var(--ios-text-secondary);
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 16px;
             cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid var(--tg-border);
+            transition: all 0.15s;
+            border: 0.5px solid var(--ios-border);
         }
         .btn-icon:hover {
-            background: var(--tg-bg-input);
+            background: #d1d1d6;
+            color: var(--ios-text);
         }
         .btn-icon:active {
             transform: scale(0.92);
         }
 
-        /* ===== Кнопка "Моё местоположение" ===== */
-        #locate-btn {
+        /* ===== КНОПКИ НА КАРТЕ (iOS стиль) ===== */
+        .map-control-btn {
             position: fixed;
-            bottom: 140px;
-            right: 16px;
             z-index: 100;
-            background: var(--tg-bg-card);
-            border: 1px solid var(--tg-border);
-            color: var(--tg-text);
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: saturate(180%) blur(16px);
+            -webkit-backdrop-filter: saturate(180%) blur(16px);
+            border: 0.5px solid rgba(60, 60, 67, 0.12);
+            color: var(--ios-text-secondary);
             width: 48px;
             height: 48px;
             border-radius: 50%;
@@ -174,234 +189,372 @@
             justify-content: center;
             font-size: 20px;
             cursor: pointer;
-            box-shadow: var(--tg-shadow);
-            transition: all 0.2s;
-            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            transition: all 0.15s;
         }
-        #locate-btn:hover {
-            background: var(--tg-bg-input);
-            transform: scale(1.05);
+        .map-control-btn:hover {
+            background: #f2f2f7;
+            color: var(--ios-text);
         }
-        #locate-btn:active {
+        .map-control-btn:active {
             transform: scale(0.92);
         }
+        .map-control-btn .badge-dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--ios-accent);
+            border: 2px solid #fff;
+        }
 
-        /* ===== Панель снизу (Bottom Sheet) ===== */
+        #locate-btn {
+            bottom: 160px;
+            right: 16px;
+        }
+        #station-list-toggle {
+            bottom: 216px;
+            right: 16px;
+        }
+
+        /* ===== BOTTOM SHEET (iOS стиль) ===== */
         #bottom-sheet {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             z-index: 500;
-            background: var(--tg-bg-secondary);
-            border-radius: var(--tg-radius) var(--tg-radius) 0 0;
-            box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.7);
-            max-height: 85vh;
-            transform: translateY(calc(100% - 64px));
-            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-            border-top: 1px solid var(--tg-border);
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: saturate(180%) blur(30px);
+            -webkit-backdrop-filter: saturate(180%) blur(30px);
+            border-radius: var(--ios-radius) var(--ios-radius) 0 0;
+            box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.06);
+            max-height: 88vh;
+            transform: translateY(calc(100% - 72px));
+            transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+            border-top: 0.5px solid rgba(60, 60, 67, 0.08);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            padding-bottom: env(safe-area-inset-bottom);
+            padding-bottom: var(--safe-bottom);
         }
-
         #bottom-sheet.open {
             transform: translateY(0);
         }
 
-        #bottom-sheet .sheet-handle {
+        .sheet-grip {
             width: 40px;
-            height: 4px;
-            background: var(--tg-text-hint);
+            height: 5px;
+            background: #c6c6c8;
             border-radius: 4px;
             margin: 10px auto 6px;
             flex-shrink: 0;
             cursor: grab;
+            opacity: 0.7;
         }
 
-        #bottom-sheet .sheet-header {
-            padding: 8px 16px 12px;
+        .sheet-header {
+            padding: 4px 16px 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-shrink: 0;
-            border-bottom: 1px solid var(--tg-border);
+            border-bottom: 0.5px solid rgba(60, 60, 67, 0.08);
         }
-
-        #bottom-sheet .sheet-header h3 {
-            font-size: 16px;
+        .sheet-header .sheet-title {
+            font-size: 17px;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
+            color: var(--ios-text);
         }
-        #bottom-sheet .sheet-header h3 i {
-            color: var(--tg-accent);
+        .sheet-header .sheet-title i {
+            color: var(--ios-accent);
+            font-size: 18px;
         }
-
-        #bottom-sheet .sheet-close {
-            background: none;
+        .sheet-header .sheet-close {
+            background: var(--ios-bg-input);
             border: none;
-            color: var(--tg-text-secondary);
-            font-size: 20px;
+            color: var(--ios-text-secondary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 16px;
             cursor: pointer;
-            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            border: 0.5px solid var(--ios-border);
+        }
+        .sheet-header .sheet-close:hover {
+            background: #d1d1d6;
+            color: var(--ios-text);
         }
 
-        #bottom-sheet .sheet-body {
+        .sheet-body {
             flex: 1;
             overflow-y: auto;
-            padding: 12px 16px 20px;
+            padding: 12px 16px 24px;
             -webkit-overflow-scrolling: touch;
         }
+        .sheet-body::-webkit-scrollbar {
+            width: 3px;
+        }
+        .sheet-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sheet-body::-webkit-scrollbar-thumb {
+            background: #c6c6c8;
+            border-radius: 3px;
+        }
 
-        /* ===== Стили внутри bottom sheet ===== */
-        .station-name {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 4px;
+        /* ===== КОНТЕНТ ВНУТРИ SHEET ===== */
+        .station-name-row {
             display: flex;
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
+            margin-bottom: 2px;
         }
-        .station-name .station-id {
+        .station-name-row .sname {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--ios-text);
+        }
+        .station-name-row .sid {
             font-size: 11px;
             font-weight: 400;
-            color: var(--tg-text-secondary);
-            background: var(--tg-bg-card);
-            padding: 2px 10px;
+            color: var(--ios-text-hint);
+            background: var(--ios-bg-input);
+            padding: 2px 12px;
             border-radius: 12px;
-            border: 1px solid var(--tg-border);
+            border: 0.5px solid var(--ios-border);
+            font-family: monospace;
         }
         .station-address {
-            font-size: 14px;
-            color: var(--tg-text-secondary);
+            font-size: 15px;
+            color: var(--ios-text-secondary);
             margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 6px;
         }
         .station-address i {
-            font-size: 12px;
-            color: var(--tg-text-hint);
+            font-size: 13px;
+            color: var(--ios-text-hint);
         }
 
-        /* Fuel chips */
+        /* Топливные чипсы */
         .fuel-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin: 12px 0 14px;
+            gap: 6px;
+            margin: 10px 0 12px;
         }
         .fuel-chip {
             padding: 6px 14px;
             border-radius: 20px;
             font-size: 13px;
             font-weight: 600;
-            border: 1px solid var(--tg-border);
+            border: 0.5px solid var(--ios-border);
             display: flex;
             align-items: center;
             gap: 6px;
-            background: var(--tg-bg-card);
-            transition: all 0.2s;
+            background: var(--ios-bg-card);
+            transition: all 0.15s;
+            color: var(--ios-text-secondary);
         }
         .fuel-chip .fuel-price {
             font-weight: 400;
             font-size: 12px;
-            color: var(--tg-text-secondary);
+            color: var(--ios-text-hint);
         }
         .fuel-chip.available {
-            border-color: var(--tg-green);
-            background: rgba(67, 181, 129, 0.12);
-            color: var(--tg-green);
+            border-color: var(--ios-green);
+            background: rgba(52, 199, 89, 0.08);
+            color: var(--ios-green);
         }
         .fuel-chip.unavailable {
-            opacity: 0.45;
+            opacity: 0.5;
             text-decoration: line-through;
         }
         .fuel-chip .fuel-status {
             font-size: 10px;
         }
 
-        /* Queue status */
+        /* Блок обновления топлива */
+        .fuel-update-section {
+            margin: 8px 0 10px;
+            padding: 10px 12px;
+            background: var(--ios-bg-card);
+            border-radius: var(--ios-radius-sm);
+            border: 0.5px solid var(--ios-border);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+        .fuel-update-section .fuel-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--ios-text-secondary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .fuel-update-section .fuel-label i {
+            font-size: 13px;
+            color: var(--ios-accent);
+        }
+        .fuel-toggle-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 10px;
+        }
+        .fuel-toggle-row label {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            color: var(--ios-text-secondary);
+            transition: color 0.15s;
+        }
+        .fuel-toggle-row label:hover {
+            color: var(--ios-text);
+        }
+        .fuel-toggle-row label input[type="checkbox"] {
+            accent-color: var(--ios-accent);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .fuel-toggle-row .fuel-price-input {
+            width: 56px;
+            background: var(--ios-bg-input);
+            border: 0.5px solid var(--ios-border);
+            border-radius: 6px;
+            padding: 2px 6px;
+            color: var(--ios-text);
+            font-size: 12px;
+            text-align: center;
+            transition: border 0.15s;
+        }
+        .fuel-toggle-row .fuel-price-input:focus {
+            outline: none;
+            border-color: var(--ios-accent);
+        }
+        .fuel-toggle-row .fuel-price-input::placeholder {
+            color: var(--ios-text-hint);
+            font-size: 10px;
+        }
+        .save-fuels-btn {
+            margin-top: 8px;
+            background: var(--ios-accent);
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: var(--ios-radius-xs);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            width: 100%;
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+        }
+        .save-fuels-btn:hover {
+            background: var(--ios-accent-hover);
+        }
+        .save-fuels-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Очередь */
         .queue-section {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin: 10px 0 14px;
-            padding: 10px 14px;
-            background: var(--tg-bg-card);
-            border-radius: var(--tg-radius-sm);
-            border: 1px solid var(--tg-border);
+            gap: 10px;
+            margin: 8px 0 12px;
+            padding: 8px 12px;
+            background: var(--ios-bg-card);
+            border-radius: var(--ios-radius-sm);
+            border: 0.5px solid var(--ios-border);
             flex-wrap: wrap;
         }
         .queue-section .queue-label {
             font-size: 13px;
             font-weight: 500;
-            color: var(--tg-text-secondary);
+            color: var(--ios-text-secondary);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
         .queue-section .queue-label i {
             font-size: 14px;
+            color: var(--ios-accent);
         }
         .queue-badge {
-            padding: 4px 12px;
+            padding: 4px 14px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
+            flex-shrink: 0;
         }
         .queue-badge.none {
-            background: rgba(142, 142, 147, 0.2);
-            color: var(--tg-text-secondary);
+            background: rgba(142, 142, 147, 0.15);
+            color: var(--ios-text-hint);
         }
         .queue-badge.low {
-            background: rgba(67, 181, 129, 0.2);
-            color: var(--tg-green);
+            background: rgba(52, 199, 89, 0.12);
+            color: var(--ios-green);
         }
         .queue-badge.medium {
-            background: rgba(250, 166, 26, 0.2);
-            color: var(--tg-orange);
+            background: rgba(255, 149, 0, 0.12);
+            color: var(--ios-orange);
         }
         .queue-badge.high {
-            background: rgba(240, 71, 71, 0.2);
-            color: var(--tg-red);
+            background: rgba(255, 59, 48, 0.12);
+            color: var(--ios-red);
         }
-
         .queue-actions {
             display: flex;
-            gap: 6px;
+            gap: 4px;
             margin-left: auto;
             flex-wrap: wrap;
         }
         .queue-actions button {
-            background: var(--tg-bg-input);
+            background: var(--ios-bg-input);
             border: none;
-            color: var(--tg-text-secondary);
+            color: var(--ios-text-secondary);
             padding: 4px 12px;
-            border-radius: 16px;
-            font-size: 12px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.15s;
-            font-weight: 500;
+            border: 0.5px solid transparent;
         }
         .queue-actions button:hover {
-            background: var(--tg-bg-card);
-            color: var(--tg-text);
+            background: #d1d1d6;
+            color: var(--ios-text);
         }
         .queue-actions button.active {
-            background: var(--tg-accent);
+            background: var(--ios-accent);
             color: #fff;
+            border-color: var(--ios-accent);
         }
 
         /* ===== Комментарии ===== */
         .comments-section {
-            margin-top: 16px;
-            border-top: 1px solid var(--tg-border);
-            padding-top: 14px;
+            margin-top: 14px;
+            border-top: 0.5px solid var(--ios-border);
+            padding-top: 12px;
         }
         .comments-section .section-title {
             font-size: 15px;
@@ -410,46 +563,64 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            color: var(--ios-text);
         }
         .comments-section .section-title i {
-            color: var(--tg-accent);
+            color: var(--ios-accent);
+            font-size: 15px;
+        }
+        .comments-section .section-title .count {
+            font-weight: 400;
+            color: var(--ios-text-hint);
+            font-size: 13px;
         }
 
         .comment-item {
-            background: var(--tg-bg-card);
-            border-radius: var(--tg-radius-sm);
-            padding: 12px 14px;
-            margin-bottom: 10px;
-            border: 1px solid var(--tg-border);
+            background: var(--ios-bg-card);
+            border-radius: var(--ios-radius-sm);
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border: 0.5px solid var(--ios-border);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+            transition: background 0.15s;
+        }
+        .comment-item:hover {
+            background: var(--ios-bg-input);
         }
         .comment-item .comment-meta {
             display: flex;
             justify-content: space-between;
             font-size: 12px;
-            color: var(--tg-text-secondary);
+            color: var(--ios-text-hint);
             margin-bottom: 4px;
         }
         .comment-item .comment-meta .comment-user {
             font-weight: 600;
-            color: var(--tg-text);
+            color: var(--ios-text);
+        }
+        .comment-item .comment-meta .comment-user i {
+            font-size: 11px;
+            color: var(--ios-accent);
+            margin-right: 4px;
         }
         .comment-item .comment-text {
             font-size: 14px;
             line-height: 1.5;
             word-break: break-word;
+            color: var(--ios-text);
         }
         .comment-item .comment-photos {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 8px;
+            gap: 5px;
+            margin-top: 6px;
         }
         .comment-item .comment-photos img {
             width: 60px;
             height: 60px;
             object-fit: cover;
-            border-radius: var(--tg-radius-xs);
-            border: 1px solid var(--tg-border);
+            border-radius: var(--ios-radius-xs);
+            border: 0.5px solid var(--ios-border);
             cursor: pointer;
             transition: transform 0.15s;
         }
@@ -459,114 +630,118 @@
         .comment-item .comment-delete {
             background: none;
             border: none;
-            color: var(--tg-text-hint);
+            color: var(--ios-text-hint);
             font-size: 12px;
             cursor: pointer;
-            margin-top: 6px;
+            margin-top: 4px;
             padding: 2px 8px;
             border-radius: 4px;
+            transition: all 0.15s;
         }
         .comment-item .comment-delete:hover {
-            color: var(--tg-red);
-            background: rgba(240, 71, 71, 0.1);
+            color: var(--ios-red);
+            background: rgba(255, 59, 48, 0.08);
         }
 
-        /* Форма добавления комментария */
+        /* Форма комментария */
         .comment-form {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-top: 12px;
-            background: var(--tg-bg-card);
-            border-radius: var(--tg-radius-sm);
-            padding: 12px;
-            border: 1px solid var(--tg-border);
+            gap: 8px;
+            margin-top: 10px;
+            background: var(--ios-bg-card);
+            border-radius: var(--ios-radius-sm);
+            padding: 10px 12px;
+            border: 0.5px solid var(--ios-border);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
         }
         .comment-form textarea {
             width: 100%;
-            background: var(--tg-bg-input);
-            border: 1px solid var(--tg-border);
-            border-radius: var(--tg-radius-xs);
-            padding: 10px 12px;
-            color: var(--tg-text);
+            background: var(--ios-bg-input);
+            border: 0.5px solid var(--ios-border);
+            border-radius: var(--ios-radius-xs);
+            padding: 8px 10px;
+            color: var(--ios-text);
             font-size: 14px;
-            font-family: var(--tg-font);
+            font-family: var(--ios-font);
             resize: vertical;
-            min-height: 60px;
-            transition: border 0.2s;
+            min-height: 54px;
+            transition: border 0.15s;
         }
         .comment-form textarea:focus {
             outline: none;
-            border-color: var(--tg-accent);
+            border-color: var(--ios-accent);
         }
         .comment-form textarea::placeholder {
-            color: var(--tg-text-hint);
+            color: var(--ios-text-hint);
         }
-
         .comment-form .form-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
         }
         .comment-form .form-actions .photo-upload-btn {
-            background: var(--tg-bg-input);
-            border: 1px solid var(--tg-border);
-            color: var(--tg-text-secondary);
-            padding: 8px 14px;
-            border-radius: var(--tg-radius-xs);
+            background: var(--ios-bg-input);
+            border: 0.5px solid var(--ios-border);
+            color: var(--ios-text-secondary);
+            padding: 6px 14px;
+            border-radius: var(--ios-radius-xs);
             cursor: pointer;
             font-size: 13px;
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
         .comment-form .form-actions .photo-upload-btn:hover {
-            background: var(--tg-bg-card);
-            color: var(--tg-text);
+            background: #d1d1d6;
+            color: var(--ios-text);
         }
         .comment-form .form-actions .photo-upload-btn i {
             font-size: 14px;
         }
-
+        .comment-form .form-actions .photo-count {
+            font-size: 12px;
+            color: var(--ios-text-hint);
+        }
         .comment-form .form-actions .submit-comment {
-            background: var(--tg-accent);
+            background: var(--ios-accent);
             border: none;
             color: #fff;
-            padding: 8px 20px;
-            border-radius: var(--tg-radius-xs);
+            padding: 7px 20px;
+            border-radius: var(--ios-radius-xs);
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
             margin-left: auto;
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
         }
         .comment-form .form-actions .submit-comment:hover {
-            background: var(--tg-accent-hover);
+            background: var(--ios-accent-hover);
         }
         .comment-form .form-actions .submit-comment:active {
             transform: scale(0.96);
         }
-
         .comment-form .photo-preview {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 5px;
             margin-top: 4px;
         }
         .comment-form .photo-preview img {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             object-fit: cover;
-            border-radius: var(--tg-radius-xs);
-            border: 1px solid var(--tg-border);
+            border-radius: var(--ios-radius-xs);
+            border: 0.5px solid var(--ios-border);
         }
         .comment-form .photo-preview .remove-photo {
             position: relative;
-            top: -20px;
-            left: -8px;
-            background: var(--tg-red);
+            top: -18px;
+            left: -6px;
+            background: var(--ios-red);
             border: none;
             color: #fff;
             width: 18px;
@@ -577,107 +752,24 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-
-        /* ===== Обновление топлива ===== */
-        .fuel-update-section {
-            margin: 8px 0 10px;
-            padding: 10px 14px;
-            background: var(--tg-bg-card);
-            border-radius: var(--tg-radius-sm);
-            border: 1px solid var(--tg-border);
-        }
-        .fuel-update-section .fuel-toggle-row {
+        .comment-form .station-photos {
             display: flex;
             flex-wrap: wrap;
-            align-items: center;
-            gap: 6px 12px;
-            margin: 3px 0;
+            gap: 5px;
+            margin: 6px 0 4px;
         }
-        .fuel-update-section .fuel-toggle-row label {
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .comment-form .station-photos img {
+            width: 56px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: var(--ios-radius-xs);
+            border: 0.5px solid var(--ios-border);
             cursor: pointer;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        .fuel-update-section .fuel-toggle-row label:hover {
-            background: var(--tg-bg-input);
-        }
-        .fuel-update-section .fuel-toggle-row input[type="checkbox"] {
-            accent-color: var(--tg-accent);
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-        }
-        .fuel-update-section .fuel-toggle-row .fuel-price-input {
-            width: 60px;
-            background: var(--tg-bg-input);
-            border: 1px solid var(--tg-border);
-            border-radius: 4px;
-            padding: 2px 6px;
-            color: var(--tg-text);
-            font-size: 12px;
-            text-align: center;
-        }
-        .fuel-update-section .fuel-toggle-row .fuel-price-input:focus {
-            outline: none;
-            border-color: var(--tg-accent);
-        }
-        .fuel-update-section .fuel-toggle-row .fuel-price-input::placeholder {
-            color: var(--tg-text-hint);
-            font-size: 10px;
         }
 
-        .fuel-update-section .save-fuels-btn {
-            margin-top: 8px;
-            background: var(--tg-accent);
-            border: none;
-            color: #fff;
-            padding: 6px 16px;
-            border-radius: var(--tg-radius-xs);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            width: 100%;
-        }
-        .fuel-update-section .save-fuels-btn:hover {
-            background: var(--tg-accent-hover);
-        }
-
-        /* ===== Список заправок ===== */
-        #station-list-toggle {
-            position: fixed;
-            bottom: 200px;
-            right: 16px;
-            z-index: 100;
-            background: var(--tg-bg-card);
-            border: 1px solid var(--tg-border);
-            color: var(--tg-text);
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-            box-shadow: var(--tg-shadow);
-            transition: all 0.2s;
-            backdrop-filter: blur(10px);
-        }
-        #station-list-toggle:hover {
-            background: var(--tg-bg-input);
-            transform: scale(1.05);
-        }
-        #station-list-toggle:active {
-            transform: scale(0.92);
-        }
-
-        /* ===== Список заправок (панель) ===== */
+        /* ===== ПАНЕЛЬ СПИСКА (iOS стиль) ===== */
         #station-list-panel {
             position: fixed;
             top: 0;
@@ -685,116 +777,168 @@
             right: 0;
             bottom: 0;
             z-index: 600;
-            background: var(--tg-bg-secondary);
+            background: rgba(242, 242, 247, 0.92);
+            backdrop-filter: saturate(180%) blur(30px);
+            -webkit-backdrop-filter: saturate(180%) blur(30px);
             transform: translateX(100%);
             transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
             display: flex;
             flex-direction: column;
-            padding-top: max(12px, env(safe-area-inset-top));
+            padding-top: var(--safe-top);
         }
         #station-list-panel.open {
             transform: translateX(0);
         }
 
-        #station-list-panel .panel-header {
+        .panel-header {
             padding: 12px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid var(--tg-border);
+            border-bottom: 0.5px solid rgba(60, 60, 67, 0.08);
             flex-shrink: 0;
+            min-height: 56px;
+            background: transparent;
         }
-        #station-list-panel .panel-header h4 {
-            font-size: 16px;
+        .panel-header h4 {
+            font-size: 17px;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
+            color: var(--ios-text);
         }
-        #station-list-panel .panel-header h4 i {
-            color: var(--tg-accent);
+        .panel-header h4 i {
+            color: var(--ios-accent);
         }
-        #station-list-panel .panel-close {
-            background: none;
+        .panel-close {
+            background: var(--ios-bg-input);
             border: none;
-            color: var(--tg-text-secondary);
-            font-size: 22px;
+            color: var(--ios-text-secondary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            border: 0.5px solid var(--ios-border);
+        }
+        .panel-close:hover {
+            background: #d1d1d6;
+            color: var(--ios-text);
         }
 
-        #station-list-panel .panel-search {
+        .panel-search {
             padding: 10px 16px;
             flex-shrink: 0;
         }
-        #station-list-panel .panel-search input {
+        .panel-search input {
             width: 100%;
-            background: var(--tg-bg-input);
-            border: 1px solid var(--tg-border);
-            border-radius: var(--tg-radius-xs);
-            padding: 10px 14px;
-            color: var(--tg-text);
-            font-size: 14px;
+            background: var(--ios-bg-input);
+            border: 0.5px solid var(--ios-border);
+            border-radius: var(--ios-radius-xs);
+            padding: 10px 16px;
+            color: var(--ios-text);
+            font-size: 15px;
+            transition: border 0.15s;
+            appearance: none;
         }
-        #station-list-panel .panel-search input:focus {
+        .panel-search input:focus {
             outline: none;
-            border-color: var(--tg-accent);
+            border-color: var(--ios-accent);
         }
-        #station-list-panel .panel-search input::placeholder {
-            color: var(--tg-text-hint);
+        .panel-search input::placeholder {
+            color: var(--ios-text-hint);
         }
 
-        #station-list-panel .panel-list {
+        .panel-list {
             flex: 1;
             overflow-y: auto;
-            padding: 8px 16px 20px;
+            padding: 8px 16px 24px;
             -webkit-overflow-scrolling: touch;
         }
-        #station-list-panel .panel-list .station-list-item {
+        .panel-list::-webkit-scrollbar {
+            width: 3px;
+        }
+        .panel-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .panel-list::-webkit-scrollbar-thumb {
+            background: #c6c6c8;
+            border-radius: 3px;
+        }
+
+        .station-list-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 12px;
-            background: var(--tg-bg-card);
-            border-radius: var(--tg-radius-sm);
+            padding: 12px 14px;
+            background: var(--ios-bg-card);
+            border-radius: var(--ios-radius-sm);
             margin-bottom: 6px;
-            border: 1px solid var(--tg-border);
+            border: 0.5px solid var(--ios-border);
             cursor: pointer;
             transition: all 0.15s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
         }
-        #station-list-panel .panel-list .station-list-item:hover {
-            background: var(--tg-bg-input);
+        .station-list-item:hover {
+            background: var(--ios-bg-input);
+            border-color: var(--ios-accent);
         }
-        #station-list-panel .panel-list .station-list-item .sli-name {
-            font-weight: 500;
-            font-size: 14px;
+        .station-list-item:active {
+            transform: scale(0.98);
         }
-        #station-list-panel .panel-list .station-list-item .sli-info {
+        .station-list-item .sli-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--ios-text);
+        }
+        .station-list-item .sli-addr {
             font-size: 12px;
-            color: var(--tg-text-secondary);
+            color: var(--ios-text-hint);
+            margin-top: 1px;
+        }
+        .station-list-item .sli-right {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            flex-shrink: 0;
         }
-        #station-list-panel .panel-list .station-list-item .sli-info .queue-dot {
-            width: 8px;
-            height: 8px;
+        .station-list-item .sli-right .fuel-indicator {
+            font-size: 12px;
+            color: var(--ios-text-secondary);
+            white-space: nowrap;
+        }
+        .station-list-item .sli-right .queue-dot {
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             display: inline-block;
+            flex-shrink: 0;
+            border: 0.5px solid rgba(0, 0, 0, 0.05);
         }
-        #station-list-panel .panel-list .station-list-item .sli-info .queue-dot.none {
-            background: var(--tg-text-hint);
+        .station-list-item .sli-right .queue-dot.none {
+            background: var(--ios-text-hint);
         }
-        #station-list-panel .panel-list .station-list-item .sli-info .queue-dot.low {
-            background: var(--tg-green);
+        .station-list-item .sli-right .queue-dot.low {
+            background: var(--ios-green);
         }
-        #station-list-panel .panel-list .station-list-item .sli-info .queue-dot.medium {
-            background: var(--tg-orange);
+        .station-list-item .sli-right .queue-dot.medium {
+            background: var(--ios-orange);
         }
-        #station-list-panel .panel-list .station-list-item .sli-info .queue-dot.high {
-            background: var(--tg-red);
+        .station-list-item .sli-right .queue-dot.high {
+            background: var(--ios-red);
+        }
+        .station-list-item .sli-right .queue-label {
+            font-size: 11px;
+            color: var(--ios-text-hint);
+            white-space: nowrap;
         }
 
-        /* ===== Модалка фото ===== */
+        /* ===== ФОТО МОДАЛКА ===== */
         #photo-modal {
             position: fixed;
             top: 0;
@@ -802,11 +946,13 @@
             right: 0;
             bottom: 0;
             z-index: 900;
-            background: rgba(0, 0, 0, 0.92);
+            background: rgba(0, 0, 0, 0.9);
             display: none;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
         #photo-modal.show {
             display: flex;
@@ -814,114 +960,124 @@
         #photo-modal img {
             max-width: 100%;
             max-height: 80vh;
-            border-radius: var(--tg-radius-sm);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+            border-radius: var(--ios-radius);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
         }
         #photo-modal .modal-close {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: calc(16px + var(--safe-top));
+            right: 16px;
             background: rgba(255, 255, 255, 0.15);
-            border: none;
+            border: 0.5px solid rgba(255, 255, 255, 0.2);
             color: #fff;
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            font-size: 24px;
+            font-size: 22px;
             cursor: pointer;
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         #photo-modal .modal-close:hover {
             background: rgba(255, 255, 255, 0.25);
         }
 
-        /* ===== Уведомления ===== */
+        /* ===== TOAST (iOS стиль) ===== */
         .toast {
             position: fixed;
             bottom: 100px;
             left: 50%;
             transform: translateX(-50%) translateY(20px);
-            background: var(--tg-bg-card);
-            color: var(--tg-text);
+            background: rgba(60, 60, 67, 0.85);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            color: #fff;
             padding: 12px 24px;
-            border-radius: var(--tg-radius-sm);
-            border: 1px solid var(--tg-border);
-            box-shadow: var(--tg-shadow);
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
             font-size: 14px;
             font-weight: 500;
             z-index: 999;
             opacity: 0;
             pointer-events: none;
-            transition: all 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
             max-width: 90%;
             text-align: center;
-            backdrop-filter: blur(10px);
         }
         .toast.show {
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
         .toast.success {
-            border-color: var(--tg-green);
-            background: rgba(67, 181, 129, 0.15);
+            background: rgba(52, 199, 89, 0.85);
         }
         .toast.error {
-            border-color: var(--tg-red);
-            background: rgba(240, 71, 71, 0.15);
+            background: rgba(255, 59, 48, 0.85);
         }
 
-        /* ===== Адаптив ===== */
+        /* ===== АДАПТИВ ===== */
         @media (max-width: 480px) {
-            #app-header .logo {
-                font-size: 15px;
+            .header-left .logo-text {
+                font-size: 16px;
             }
-            #app-header .logo i {
-                font-size: 18px;
+            .header-left .logo-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 16px;
             }
-            #header-actions .badge {
-                font-size: 10px;
-                padding: 2px 8px;
+            .header-right .city-badge {
+                font-size: 11px;
+                padding: 4px 12px;
             }
-            .station-name {
-                font-size: 17px;
+            .btn-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            .station-name-row .sname {
+                font-size: 19px;
             }
             .fuel-chip {
-                font-size: 11px;
-                padding: 4px 10px;
-            }
-            .comment-form .form-actions .submit-comment {
                 font-size: 12px;
-                padding: 6px 14px;
-            }
-            #bottom-sheet .sheet-body {
-                padding: 8px 12px 16px;
+                padding: 4px 12px;
             }
             #bottom-sheet {
-                max-height: 80vh;
+                max-height: 82vh;
             }
-            #station-list-toggle,
-            #locate-btn {
-                width: 42px;
-                height: 42px;
-                font-size: 16px;
+            .sheet-body {
+                padding: 8px 12px 16px;
+            }
+            #locate-btn,
+            #station-list-toggle {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
                 right: 12px;
             }
             #station-list-toggle {
-                bottom: 180px;
+                bottom: 196px;
             }
             #locate-btn {
-                bottom: 120px;
+                bottom: 144px;
+            }
+            .comment-form .form-actions .submit-comment {
+                font-size: 13px;
+                padding: 6px 16px;
             }
         }
 
         @media (max-height: 700px) {
             #bottom-sheet {
-                max-height: 75vh;
+                max-height: 74vh;
             }
-            #bottom-sheet .sheet-header {
-                padding: 4px 12px 8px;
+            .sheet-header {
+                padding: 2px 12px 8px;
             }
-            #bottom-sheet .sheet-body {
+            .sheet-body {
                 padding: 6px 12px 12px;
             }
             .fuel-grid {
@@ -930,50 +1086,35 @@
             }
             .fuel-chip {
                 font-size: 11px;
-                padding: 3px 8px;
+                padding: 3px 10px;
             }
             .queue-section {
-                padding: 6px 10px;
-                margin: 6px 0 8px;
+                padding: 5px 10px;
+                margin: 4px 0 8px;
             }
             .comments-section {
-                margin-top: 10px;
-                padding-top: 10px;
+                margin-top: 8px;
+                padding-top: 8px;
             }
             .comment-item {
-                padding: 8px 10px;
-                margin-bottom: 6px;
+                padding: 6px 10px;
+                margin-bottom: 5px;
             }
             .comment-form {
-                padding: 8px 10px;
-                gap: 6px;
+                padding: 6px 10px;
+                gap: 4px;
             }
             .comment-form textarea {
                 min-height: 40px;
                 font-size: 13px;
-                padding: 6px 10px;
+                padding: 5px 8px;
             }
-            .station-name {
-                font-size: 16px;
+            .station-name-row .sname {
+                font-size: 17px;
             }
         }
 
-        /* Scrollbar */
-        .sheet-body::-webkit-scrollbar,
-        .panel-list::-webkit-scrollbar {
-            width: 4px;
-        }
-        .sheet-body::-webkit-scrollbar-track,
-        .panel-list::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .sheet-body::-webkit-scrollbar-thumb,
-        .panel-list::-webkit-scrollbar-thumb {
-            background: var(--tg-border);
-            border-radius: 4px;
-        }
-
-        /* Убираем стандартные маркеры Leaflet */
+        /* ===== ПЕРЕОПРЕДЕЛЕНИЕ СТАНДАРТНЫХ МАРКЕРОВ LEAFTLET ===== */
         .leaflet-marker-icon {
             background: transparent !important;
             border: none !important;
@@ -986,20 +1127,77 @@
             border: none;
         }
 
-        /* Стиль для кнопок зума */
+        /* Кнопки зума Leaflet в iOS стиле */
         .leaflet-control-zoom {
             border-radius: 12px !important;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+            border: 0.5px solid rgba(60, 60, 67, 0.12) !important;
+            backdrop-filter: saturate(180%) blur(16px) !important;
+            -webkit-backdrop-filter: saturate(180%) blur(16px) !important;
+            background: rgba(255, 255, 255, 0.9) !important;
         }
         .leaflet-control-zoom a {
-            background: var(--tg-bg-card) !important;
-            color: var(--tg-text) !important;
-            border-color: var(--tg-border) !important;
-            transition: all 0.2s;
+            background: transparent !important;
+            color: var(--ios-text-secondary) !important;
+            border-color: rgba(60, 60, 67, 0.08) !important;
+            transition: all 0.15s !important;
+            font-weight: 300 !important;
         }
         .leaflet-control-zoom a:hover {
-            background: var(--tg-bg-input) !important;
+            background: var(--ios-bg-input) !important;
+            color: var(--ios-text) !important;
+        }
+        .leaflet-control-zoom a:active {
+            transform: scale(0.92);
+        }
+        .leaflet-control-zoom a.leaflet-disabled {
+            opacity: 0.3 !important;
+        }
+
+        /* Анимация выбора маркера */
+        @keyframes markerPulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.18);
+            }
+        }
+        .marker-pulse {
+            animation: markerPulse 0.4s ease 2;
+        }
+
+        /* Скелетон */
+        .skeleton {
+            background: var(--ios-bg-card);
+            border-radius: var(--ios-radius-sm);
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 0.5px solid var(--ios-border);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        .skeleton .line {
+            height: 12px;
+            background: var(--ios-bg-input);
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+        .skeleton .line:last-child {
+            margin-bottom: 0;
+        }
+        .skeleton .line.short {
+            width: 60%;
         }
     </style>
 </head>
@@ -1008,43 +1206,43 @@
     <!-- ===== КАРТА ===== -->
     <div id="map"></div>
 
-    <!-- ===== ШАПКА ===== -->
+    <!-- ===== ХЕДЕР ===== -->
     <header id="app-header">
-        <div class="logo">
-            <i class="fas fa-gas-pump"></i>
-            <span>Топливо Радар</span>
+        <div class="header-left">
+            <div class="logo-icon"><i class="fas fa-gas-pump"></i></div>
+            <span class="logo-text">Топливо Радар</span>
         </div>
-        <div id="header-actions">
-            <span class="badge"><i class="fas fa-location-dot"></i> Сургут</span>
-            <button class="btn-icon" id="refresh-btn" title="Обновить заправки (TomTom)">
-                <i class="fas fa-rotate"></i>
-            </button>
+        <div class="header-right">
+            <span class="city-badge"><i class="fas fa-location-dot"></i> Сургут</span>
+            <button class="btn-icon" id="refresh-btn" title="Обновить"><i class="fas fa-rotate"></i></button>
         </div>
     </header>
 
-    <!-- ===== КНОПКИ ===== -->
-    <button id="locate-btn" title="Моё местоположение">
+    <!-- ===== КНОПКИ НА КАРТЕ ===== -->
+    <button class="map-control-btn" id="locate-btn" title="Моё местоположение">
         <i class="fas fa-crosshairs"></i>
     </button>
-    <button id="station-list-toggle" title="Список заправок">
+    <button class="map-control-btn" id="station-list-toggle" title="Список заправок">
         <i class="fas fa-list"></i>
+        <span class="badge-dot"></span>
     </button>
 
     <!-- ===== BOTTOM SHEET ===== -->
     <div id="bottom-sheet">
-        <div class="sheet-handle" id="sheet-handle"></div>
+        <div class="sheet-grip" id="sheet-grip"></div>
         <div class="sheet-header">
-            <h3 id="sheet-title"><i class="fas fa-gas-pump"></i> <span id="station-name-display">Заправка</span></h3>
+            <div class="sheet-title">
+                <i class="fas fa-gas-pump"></i>
+                <span id="station-name-display">Заправка</span>
+            </div>
             <button class="sheet-close" id="sheet-close"><i class="fas fa-xmark"></i></button>
         </div>
         <div class="sheet-body" id="sheet-body">
-            <div id="station-detail-content">
-                <!-- Заполняется JS -->
-            </div>
+            <div id="station-detail-content"></div>
         </div>
     </div>
 
-    <!-- ===== СПИСОК ЗАПРАВОК (панель) ===== -->
+    <!-- ===== ПАНЕЛЬ СПИСКА ===== -->
     <div id="station-list-panel">
         <div class="panel-header">
             <h4><i class="fas fa-list"></i> Все заправки</h4>
@@ -1065,6 +1263,9 @@
     <!-- ===== TOAST ===== -->
     <div id="toast" class="toast"></div>
 
+    <!-- ================================================================
+    JAVASCRIPT (такой же, как раньше, без изменений логики)
+    ================================================================ -->
     <script>
         // ======================================================================
         // 1. КОНФИГУРАЦИЯ
@@ -1110,17 +1311,9 @@
         function loadLocalData() {
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);
-                if (raw) {
-                    stationsData = JSON.parse(raw);
-                } else {
-                    stationsData = {};
-                }
+                stationsData = raw ? JSON.parse(raw) : {};
                 const rawStations = localStorage.getItem(STATIONS_KEY);
-                if (rawStations) {
-                    tomTomStations = JSON.parse(rawStations);
-                } else {
-                    tomTomStations = {};
-                }
+                tomTomStations = rawStations ? JSON.parse(rawStations) : {};
             } catch (e) {
                 console.warn('Ошибка загрузки локальных данных:', e);
                 stationsData = {};
@@ -1161,14 +1354,13 @@
                     allStations[id].userData = data;
                 }
             }
-            // Если после объединения всё ещё пусто – добавляем тестовые заправки
             if (Object.keys(allStations).length === 0) {
                 addDefaultStations();
             }
         }
 
         // ======================================================================
-        // 4. ТЕСТОВЫЕ ЗАПРАВКИ (если TomTom не вернул данные)
+        // 4. ТЕСТОВЫЕ ЗАПРАВКИ
         // ======================================================================
         function addDefaultStations() {
             const defaults = [
@@ -1180,12 +1372,7 @@
             for (const s of defaults) {
                 tomTomStations[s.id] = s;
                 if (!stationsData[s.id]) {
-                    stationsData[s.id] = {
-                        fuels: {},
-                        queue: 'none',
-                        comments: [],
-                        stationPhotos: [],
-                    };
+                    stationsData[s.id] = { fuels: {}, queue: 'none', comments: [], stationPhotos: [] };
                 }
             }
             saveLocalData();
@@ -1198,20 +1385,17 @@
         async function searchGasStations(lat, lng) {
             const url =
                 `https://api.tomtom.com/search/2/categorySearch/gas%20station.json?key=${TOMTOM_API_KEY}&lat=${lat}&lon=${lng}&radius=10000&limit=100&language=ru-RU`;
-
             try {
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
-
                 if (data.results && data.results.length > 0) {
                     const newStations = {};
                     for (const result of data.results) {
-                        const id = result.id || `station_${Date.now()}_${Math.random()}`;
+                        const id = result.id || `station_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
                         const position = result.position || { lat: 0, lon: 0 };
                         const poi = result.poi || {};
                         const address = result.address || {};
-
                         newStations[id] = {
                             id: id,
                             name: poi.name || 'АЗС',
@@ -1223,15 +1407,9 @@
                             tomtomId: id,
                         };
                         if (!stationsData[id]) {
-                            stationsData[id] = {
-                                fuels: {},
-                                queue: 'none',
-                                comments: [],
-                                stationPhotos: [],
-                            };
+                            stationsData[id] = { fuels: {}, queue: 'none', comments: [], stationPhotos: [] };
                         }
                     }
-
                     tomTomStations = { ...tomTomStations, ...newStations };
                     saveLocalData();
                     mergeStations();
@@ -1241,9 +1419,7 @@
                     return true;
                 } else {
                     showToast('Заправки не найдены. Используются тестовые.', 'error');
-                    if (Object.keys(tomTomStations).length === 0) {
-                        addDefaultStations();
-                    }
+                    if (Object.keys(tomTomStations).length === 0) addDefaultStations();
                     mergeStations();
                     renderMarkers();
                     renderStationList();
@@ -1252,9 +1428,7 @@
             } catch (error) {
                 console.error('Ошибка поиска заправок:', error);
                 showToast('Ошибка загрузки. Используются тестовые.', 'error');
-                if (Object.keys(tomTomStations).length === 0) {
-                    addDefaultStations();
-                }
+                if (Object.keys(tomTomStations).length === 0) addDefaultStations();
                 mergeStations();
                 renderMarkers();
                 renderStationList();
@@ -1263,67 +1437,54 @@
         }
 
         // ======================================================================
-        // 6. МАРКЕРЫ (SVG)
+        // 6. МАРКЕРЫ (SVG) — с цветами под iOS
         // ======================================================================
         function getMarkerColor(stationId) {
             const st = allStations[stationId];
-            if (!st) return '#5c5c60';
-            const userData = st.userData || {};
-            const fuels = userData.fuels || {};
-            const fuelTypes = FUEL_TYPES.map(f => f.id);
-            let availableCount = 0;
-            let totalCount = 0;
-            for (const f of fuelTypes) {
-                const fuel = fuels[f];
-                if (fuel !== undefined) {
-                    totalCount++;
-                    if (fuel.available === true) availableCount++;
-                }
+            if (!st) return '#8e8e93';
+            const fuels = st.userData?.fuels || {};
+            let availableCount = 0,
+                totalCount = 0;
+            for (const f of FUEL_TYPES) {
+                const fuel = fuels[f.id];
+                if (fuel !== undefined) { totalCount++; if (fuel.available === true) availableCount++; }
             }
-            if (totalCount === 0) return '#5c5c60';
-            if (availableCount === totalCount) return '#43b581';
-            if (availableCount === 0) return '#f04747';
-            return '#faa61a';
+            if (totalCount === 0) return '#8e8e93';
+            if (availableCount === totalCount) return '#34c759';
+            if (availableCount === 0) return '#ff3b30';
+            return '#ff9500';
         }
 
         function createSVGMarker(stationId) {
             const color = getMarkerColor(stationId);
             const st = allStations[stationId];
-            const queue = (st?.userData?.queue) || 'none';
+            const queue = st?.userData?.queue || 'none';
             const svg = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42">
-                    <circle cx="21" cy="21" r="19" fill="${color}" stroke="#ffffff" stroke-width="2" />
-                    <text x="21" y="26" font-size="18" text-anchor="middle" fill="#ffffff" font-family="Arial" font-weight="bold">⛽</text>
-                    ${queue !== 'none' ? `<circle cx="32" cy="10" r="7" fill="${queue === 'low' ? '#43b581' : queue === 'medium' ? '#faa61a' : '#f04747'}" stroke="#ffffff" stroke-width="1.5" />` : ''}
+                <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
+                    <circle cx="22" cy="22" r="18" fill="${color}" stroke="#ffffff" stroke-width="2.5" />
+                    <text x="22" y="27" font-size="18" text-anchor="middle" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-weight="600">⛽</text>
+                    ${queue !== 'none' ? `<circle cx="33" cy="10" r="8" fill="${queue === 'low' ? '#34c759' : queue === 'medium' ? '#ff9500' : '#ff3b30'}" stroke="#ffffff" stroke-width="2" />` : ''}
                 </svg>
             `;
             return L.divIcon({
                 className: 'custom-marker',
                 html: svg,
-                iconSize: [42, 42],
-                iconAnchor: [21, 42],
+                iconSize: [44, 44],
+                iconAnchor: [22, 44],
                 popupAnchor: [0, -20],
             });
         }
 
         function renderMarkers() {
-            for (const [id, marker] of Object.entries(mapMarkers)) {
-                map.removeLayer(marker);
-            }
+            for (const [id, marker] of Object.entries(mapMarkers)) map.removeLayer(marker);
             mapMarkers = {};
-
-            const stationIds = Object.keys(allStations);
-            if (stationIds.length === 0) return;
-
             for (const [id, st] of Object.entries(allStations)) {
                 if (!st.lat || !st.lng) continue;
                 const icon = createSVGMarker(id);
                 const marker = L.marker([st.lat, st.lng], { icon })
                     .addTo(map)
-                    .on('click', (e) => {
-                        L.DomEvent.stopPropagation(e);
-                        openStation(id);
-                    });
+                    .on('click', (e) => { L.DomEvent.stopPropagation(e);
+                        openStation(id); });
                 mapMarkers[id] = marker;
             }
         }
@@ -1334,19 +1495,11 @@
         function openStation(stationId) {
             currentStationId = stationId;
             const st = allStations[stationId];
-            if (!st) {
-                showToast('Заправка не найдена', 'error');
-                return;
-            }
-
+            if (!st) { showToast('Заправка не найдена', 'error'); return; }
             document.getElementById('station-name-display').textContent = st.name || 'АЗС';
             renderStationDetail(stationId);
             openSheet();
-
-            if (st.lat && st.lng) {
-                map.setView([st.lat, st.lng], 15, { animate: true });
-            }
-
+            if (st.lat && st.lng) map.setView([st.lat, st.lng], 15, { animate: true });
             for (const [id, marker] of Object.entries(mapMarkers)) {
                 const el = marker.getElement();
                 if (el) {
@@ -1366,9 +1519,7 @@
             document.getElementById('bottom-sheet').classList.remove('open');
             for (const [id, marker] of Object.entries(mapMarkers)) {
                 const el = marker.getElement();
-                if (el) {
-                    el.style.transform = 'scale(1)';
-                }
+                if (el) el.style.transform = 'scale(1)';
             }
             currentStationId = null;
         }
@@ -1379,10 +1530,8 @@
         function renderStationDetail(stationId) {
             const container = document.getElementById('station-detail-content');
             const st = allStations[stationId];
-            if (!st) {
-                container.innerHTML = '<p style="color:var(--tg-text-secondary);">Заправка не найдена</p>';
-                return;
-            }
+            if (!st) { container.innerHTML =
+                '<p style="color:var(--ios-text-hint);font-size:15px;">Заправка не найдена</p>'; return; }
 
             const userData = st.userData || {};
             const fuels = userData.fuels || {};
@@ -1391,15 +1540,14 @@
             const stationPhotos = userData.stationPhotos || [];
 
             let html = `
-                <div class="station-name">
-                    ${st.name || 'АЗС'}
-                    <span class="station-id">${st.id ? st.id.slice(0, 8) : ''}</span>
+                <div class="station-name-row">
+                    <span class="sname">${st.name || 'АЗС'}</span>
+                    <span class="sid">${st.id ? st.id.slice(0,8) : ''}</span>
                 </div>
-                <div class="station-address">
-                    <i class="fas fa-location-dot"></i> ${st.address || 'Адрес не указан'}
-                </div>
+                <div class="station-address"><i class="fas fa-location-dot"></i> ${st.address || 'Адрес не указан'}</div>
             `;
 
+            // Топливо
             html += `<div class="fuel-grid">`;
             for (const fuel of FUEL_TYPES) {
                 const f = fuels[fuel.id] || { available: false, price: null };
@@ -1407,8 +1555,7 @@
                 const price = f.price !== undefined && f.price !== null && f.price !== '' ? f.price : null;
                 html += `
                     <div class="fuel-chip ${available ? 'available' : 'unavailable'}">
-                        <i class="fas ${fuel.icon}"></i>
-                        ${fuel.label}
+                        <i class="fas ${fuel.icon}"></i> ${fuel.label}
                         ${price ? `<span class="fuel-price">${price} ₽</span>` : ''}
                         <span class="fuel-status">${available ? '✅' : '❌'}</span>
                     </div>
@@ -1416,11 +1563,10 @@
             }
             html += `</div>`;
 
+            // Обновление топлива
             html += `
                 <div class="fuel-update-section">
-                    <div style="font-size:13px;font-weight:500;margin-bottom:6px;color:var(--tg-text-secondary);">
-                        <i class="fas fa-pen"></i> Обновить топливо:
-                    </div>
+                    <div class="fuel-label"><i class="fas fa-pen"></i> Обновить топливо</div>
                     <div class="fuel-toggle-row">
             `;
             for (const fuel of FUEL_TYPES) {
@@ -1431,7 +1577,7 @@
                     <label>
                         <input type="checkbox" class="fuel-checkbox" data-fuel="${fuel.id}" ${checked} />
                         ${fuel.label}
-                        <input type="number" class="fuel-price-input" data-fuel="${fuel.id}" placeholder="₽" value="${priceVal}" step="0.1" min="0" style="width:55px;" />
+                        <input type="number" class="fuel-price-input" data-fuel="${fuel.id}" placeholder="₽" value="${priceVal}" step="0.1" min="0" />
                     </label>
                 `;
             }
@@ -1441,6 +1587,7 @@
                 </div>
             `;
 
+            // Очередь
             html += `
                 <div class="queue-section">
                     <span class="queue-label"><i class="fas fa-users"></i> Очередь:</span>
@@ -1457,25 +1604,28 @@
                 </div>
             `;
 
+            // Фото заправки
             if (stationPhotos.length > 0) {
                 html += `
-                    <div style="margin:8px 0 10px;display:flex;flex-wrap:wrap;gap:6px;">
-                        ${stationPhotos.map(p => `<img src="${p}" style="width:60px;height:60px;object-fit:cover;border-radius:var(--tg-radius-xs);border:1px solid var(--tg-border);cursor:pointer;" onclick="openPhotoModal('${p}')" />`).join('')}
+                    <div style="margin:6px 0 10px;display:flex;flex-wrap:wrap;gap:5px;">
+                        ${stationPhotos.map(p => `<img src="${p}" style="width:60px;height:60px;object-fit:cover;border-radius:var(--ios-radius-xs);border:0.5px solid var(--ios-border);cursor:pointer;" onclick="openPhotoModal('${p}')" />`).join('')}
                     </div>
                 `;
             }
 
+            // Комментарии
             html += `
                 <div class="comments-section">
-                    <div class="section-title"><i class="fas fa-comment"></i> Комментарии (${comments.length})</div>
+                    <div class="section-title">
+                        <i class="fas fa-comment"></i> Комментарии
+                        <span class="count">(${comments.length})</span>
+                    </div>
             `;
-
             if (comments.length === 0) {
-                html += `<p style="color:var(--tg-text-secondary);font-size:13px;">Пока нет комментариев. Будьте первым!</p>`;
+                html += `<p style="color:var(--ios-text-hint);font-size:14px;">Пока нет комментариев. Будьте первым!</p>`;
             } else {
                 const sorted = [...comments].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-                const recent = sorted.slice(0, 10);
-                for (const c of recent) {
+                for (const c of sorted.slice(0, 10)) {
                     const date = c.timestamp ? new Date(c.timestamp).toLocaleString('ru-RU') : '';
                     html += `
                         <div class="comment-item">
@@ -1497,14 +1647,15 @@
                 }
             }
 
+            // Форма комментария
             html += `
                 <div class="comment-form">
-                    <textarea id="comment-text" placeholder="Поделитесь информацией о заправке..."></textarea>
+                    <textarea id="comment-text" placeholder="Поделитесь информацией о заправке..." rows="2"></textarea>
                     <div class="form-actions">
                         <button class="photo-upload-btn" id="comment-photo-btn">
                             <i class="fas fa-camera"></i> Фото
                         </button>
-                        <span id="photo-count" style="font-size:12px;color:var(--tg-text-secondary);">0 фото</span>
+                        <span class="photo-count" id="photo-count">0 фото</span>
                         <button class="submit-comment" id="submit-comment-btn">Отправить</button>
                     </div>
                     <div class="photo-preview" id="photo-preview"></div>
@@ -1515,9 +1666,8 @@
             html += `</div>`;
             container.innerHTML = html;
 
-            document.getElementById('save-fuels-btn')?.addEventListener('click', () => {
-                saveFuels(stationId);
-            });
+            // События
+            document.getElementById('save-fuels-btn')?.addEventListener('click', () => saveFuels(stationId));
 
             document.querySelectorAll('.queue-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -1531,39 +1681,27 @@
             });
 
             const fileInput = document.getElementById('comment-file-input');
-            document.getElementById('comment-photo-btn')?.addEventListener('click', () => {
-                fileInput?.click();
-            });
+            document.getElementById('comment-photo-btn')?.addEventListener('click', () => fileInput?.click());
             fileInput?.addEventListener('change', (e) => {
                 const files = e.target.files;
                 if (files) {
                     for (const file of files) {
-                        if (file.size > 5 * 1024 * 1024) {
-                            showToast('Файл слишком большой (макс. 5 МБ)', 'error');
-                            continue;
-                        }
+                        if (file.size > 5 * 1024 * 1024) { showToast('Файл слишком большой (макс. 5 МБ)',
+                            'error'); continue; }
                         const reader = new FileReader();
-                        reader.onload = (ev) => {
-                            const dataUrl = ev.target.result;
-                            pendingPhotos.push(dataUrl);
+                        reader.onload = (ev) => { pendingPhotos.push(ev.target.result);
                             renderPhotoPreview();
-                            updatePhotoCount();
-                        };
+                            updatePhotoCount(); };
                         reader.readAsDataURL(file);
                     }
                 }
                 fileInput.value = '';
             });
 
-            document.getElementById('submit-comment-btn')?.addEventListener('click', () => {
-                submitComment(stationId);
-            });
-
+            document.getElementById('submit-comment-btn')?.addEventListener('click', () => submitComment(stationId));
             document.getElementById('comment-text')?.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    submitComment(stationId);
-                }
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault();
+                    submitComment(stationId); }
             });
 
             updatePhotoCount();
@@ -1577,7 +1715,6 @@
             const checkboxes = document.querySelectorAll('.fuel-checkbox');
             const inputs = document.querySelectorAll('.fuel-price-input');
             const fuels = {};
-
             checkboxes.forEach(cb => {
                 const fuelId = cb.dataset.fuel;
                 const priceInput = document.querySelector(`.fuel-price-input[data-fuel="${fuelId}"]`);
@@ -1587,7 +1724,6 @@
                     price: (price && price > 0) ? price : null,
                 };
             });
-
             updateStationData(stationId, { fuels: fuels });
             renderStationDetail(stationId);
             renderMarkers();
@@ -1601,25 +1737,18 @@
         function submitComment(stationId) {
             const textEl = document.getElementById('comment-text');
             const text = textEl?.value?.trim();
-            if (!text && pendingPhotos.length === 0) {
-                showToast('Напишите текст или добавьте фото', 'error');
-                return;
-            }
-
+            if (!text && pendingPhotos.length === 0) { showToast('Напишите текст или добавьте фото', 'error'); return; }
             const userData = getStationData(stationId);
             if (!userData.comments) userData.comments = [];
-
             const comment = {
-                id: `c_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                id: `c_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
                 user: 'Пользователь',
                 text: text || '',
                 timestamp: Date.now(),
                 photos: [...pendingPhotos],
             };
-
             userData.comments.push(comment);
             updateStationData(stationId, { comments: userData.comments });
-
             pendingPhotos = [];
             if (textEl) textEl.value = '';
             renderStationDetail(stationId);
@@ -1641,10 +1770,7 @@
         function renderPhotoPreview() {
             const container = document.getElementById('photo-preview');
             if (!container) return;
-            if (pendingPhotos.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
+            if (pendingPhotos.length === 0) { container.innerHTML = ''; return; }
             container.innerHTML = pendingPhotos.map((p, idx) => `
                 <div style="position:relative;display:inline-block;">
                     <img src="${p}" />
@@ -1669,13 +1795,8 @@
         // ======================================================================
         function getStationData(stationId) {
             if (!stationsData[stationId]) {
-                stationsData[stationId] = {
-                    fuels: {},
-                    queue: 'none',
-                    comments: [],
-                    stationPhotos: [],
-                    lastUpdated: Date.now(),
-                };
+                stationsData[stationId] = { fuels: {}, queue: 'none', comments: [], stationPhotos: [], lastUpdated: Date
+                    .now() };
                 saveLocalData();
             }
             return stationsData[stationId];
@@ -1700,50 +1821,41 @@
             const ids = Object.keys(allStations);
             if (ids.length === 0) {
                 container.innerHTML =
-                    '<p style="color:var(--tg-text-secondary);text-align:center;padding:20px;">Нет заправок</p>';
+                    '<p style="color:var(--ios-text-hint);text-align:center;padding:20px;font-size:15px;">Нет заправок</p>';
                 return;
             }
-
             let html = '';
             const search = filter.toLowerCase().trim();
-
             for (const [id, st] of Object.entries(allStations)) {
                 const name = st.name || 'АЗС';
                 const address = st.address || '';
                 if (search && !name.toLowerCase().includes(search) && !address.toLowerCase().includes(search)) continue;
-
                 const userData = st.userData || {};
                 const queue = userData.queue || 'none';
                 const hasFuel = Object.values(userData.fuels || {}).some(f => f.available === true);
                 const fuelCount = Object.values(userData.fuels || {}).filter(f => f.available === true).length;
-
+                const queueLabel = QUEUE_STATUSES.find(q => q.id === queue)?.label || 'Нет';
                 html += `
                     <div class="station-list-item" data-id="${id}">
                         <div>
                             <div class="sli-name">${name}</div>
-                            <div style="font-size:12px;color:var(--tg-text-secondary);">${address || 'Адрес не указан'}</div>
+                            <div class="sli-addr">${address || 'Адрес не указан'}</div>
                         </div>
-                        <div class="sli-info">
-                            <span>${hasFuel ? `⛽ ${fuelCount} вида` : '⛔ нет топлива'}</span>
+                        <div class="sli-right">
+                            <span class="fuel-indicator">${hasFuel ? `⛽ ${fuelCount}` : '⛔'}</span>
                             <span class="queue-dot ${queue}"></span>
-                            <span style="font-size:11px;color:var(--tg-text-hint);">${QUEUE_STATUSES.find(q => q.id === queue)?.label || 'Нет'}</span>
+                            <span class="queue-label">${queueLabel}</span>
                         </div>
                     </div>
                 `;
             }
-
-            if (!html) {
-                html = '<p style="color:var(--tg-text-secondary);text-align:center;padding:20px;">Ничего не найдено</p>';
-            }
-
+            if (!html) html =
+                '<p style="color:var(--ios-text-hint);text-align:center;padding:20px;font-size:15px;">Ничего не найдено</p>';
             container.innerHTML = html;
-
             container.querySelectorAll('.station-list-item').forEach(el => {
-                el.addEventListener('click', () => {
-                    const id = el.dataset.id;
+                el.addEventListener('click', () => { const id = el.dataset.id;
                     closeListPanel();
-                    openStation(id);
-                });
+                    openStation(id); });
             });
         }
 
@@ -1763,8 +1875,7 @@
         // ======================================================================
         function openPhotoModal(src) {
             const modal = document.getElementById('photo-modal');
-            const img = document.getElementById('modal-photo-img');
-            img.src = src;
+            document.getElementById('modal-photo-img').src = src;
             modal.classList.add('show');
         }
 
@@ -1782,9 +1893,7 @@
             toast.className = 'toast ' + type;
             toast.classList.add('show');
             clearTimeout(toast._timeout);
-            toast._timeout = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
         // ======================================================================
@@ -1805,9 +1914,8 @@
                         searchGasStations(latitude, longitude);
                         showToast('Позиция обновлена', 'success');
                     },
-                    () => {
-                        showToast('Не удалось определить местоположение', 'error');
-                    }, { enableHighAccuracy: true, timeout: 10000 }
+                    () => showToast('Не удалось определить местоположение', 'error'), { enableHighAccuracy: true,
+                        timeout: 10000 }
                 );
             } else {
                 showToast('Геолокация не поддерживается', 'error');
@@ -1815,7 +1923,7 @@
         }
 
         // ======================================================================
-        // 16. ИНИЦИАЛИЗАЦИЯ КАРТЫ (С FALLBACK)
+        // 16. ИНИЦИАЛИЗАЦИЯ КАРТЫ (С FALLBACK OSM)
         // ======================================================================
         function initMap() {
             map = L.map('map', {
@@ -1825,9 +1933,8 @@
                 attributionControl: false,
             });
 
-            // Пытаемся загрузить TomTom, если не получается – OSM
             const tomtomLayer = L.tileLayer(
-                `https://api.tomtom.com/map/1/tile/basic/night/{z}/{x}/{y}.png?key=${TOMTOM_API_KEY}&tileSize=512`, {
+                `https://api.tomtom.com/map/1/tile/basic/main/{z}/{x}/{y}.png?key=${TOMTOM_API_KEY}&tileSize=512`, {
                     attribution: '© TomTom',
                     maxZoom: 22,
                     tileSize: 512,
@@ -1839,10 +1946,7 @@
                 maxZoom: 19,
             });
 
-            // Добавляем TomTom, если тайлы не грузятся – переключаем на OSM
             tomtomLayer.addTo(map);
-
-            // Проверяем загрузку тайлов через событие 'tileerror'
             let tomtomFailed = false;
             map.on('tileerror', function(e) {
                 if (!tomtomFailed && e.tile.src.indexOf('tomtom') !== -1) {
@@ -1853,23 +1957,12 @@
                 }
             });
 
-            // Принудительно пересчитываем размеры после загрузки
-            setTimeout(() => {
-                map.invalidateSize();
-            }, 200);
+            setTimeout(() => map.invalidateSize(), 200);
+            window.addEventListener('resize', () => map.invalidateSize());
 
-            // Обработчик изменения размера окна
-            window.addEventListener('resize', () => {
-                map.invalidateSize();
-            });
+            map.on('click', () => { closeSheet();
+                closeListPanel(); });
 
-            // Закрытие панелей по клику на карту
-            map.on('click', () => {
-                closeSheet();
-                closeListPanel();
-            });
-
-            // После инициализации загружаем заправки
             loadLocalData();
             searchGasStations(SURGUT_CENTER[0], SURGUT_CENTER[1]);
         }
@@ -1878,46 +1971,28 @@
         // 17. ЗАПУСК
         // ======================================================================
         document.addEventListener('DOMContentLoaded', () => {
-            // Применяем тему Telegram
+            // Применяем тему Telegram (но мы используем светлую iOS, поэтому игнорируем тёмную тему)
+            // Если пользователь включил тёмную тему в Telegram, мы всё равно принудительно ставим светлую iOS.
+            // Можно оставить как есть, но мы хотим светлый стиль.
             try {
                 if (window.Telegram && Telegram.WebApp) {
-                    const tg = Telegram.WebApp;
-                    tg.expand();
-                    const theme = tg.themeParams || {};
-                    if (theme.bg_color) document.documentElement.style.setProperty('--tg-bg', theme.bg_color);
-                    if (theme.secondary_bg_color) document.documentElement.style.setProperty('--tg-bg-secondary', theme
-                        .secondary_bg_color);
-                    if (theme.text_color) document.documentElement.style.setProperty('--tg-text', theme.text_color);
-                    if (theme.hint_color) document.documentElement.style.setProperty('--tg-text-secondary', theme
-                        .hint_color);
-                    if (theme.accent_text_color) document.documentElement.style.setProperty('--tg-accent', theme
-                        .accent_text_color);
-                    if (theme.section_bg_color) document.documentElement.style.setProperty('--tg-bg-card', theme
-                        .section_bg_color);
-                    if (theme.section_header_text_color) document.documentElement.style.setProperty('--tg-text-hint',
-                        theme.section_header_text_color);
+                    Telegram.WebApp.expand();
+                    // Не применяем тему, оставляем наши стили.
                 }
             } catch (e) { /* не критично */ }
 
-            // Инициализируем карту
             initMap();
 
             // Обработчики UI
             document.getElementById('sheet-close').addEventListener('click', closeSheet);
-            document.getElementById('sheet-handle').addEventListener('click', () => {
-                if (isSheetOpen) closeSheet();
-            });
+            document.getElementById('sheet-grip').addEventListener('click', () => { if (isSheetOpen) closeSheet(); });
 
             let startY = 0;
             const sheet = document.getElementById('bottom-sheet');
-            sheet.addEventListener('touchstart', (e) => {
-                startY = e.touches[0].clientY;
-            });
+            sheet.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; });
             sheet.addEventListener('touchmove', (e) => {
                 const dy = e.touches[0].clientY - startY;
-                if (dy > 60 && isSheetOpen) {
-                    closeSheet();
-                }
+                if (dy > 50 && isSheetOpen) closeSheet();
             });
 
             document.getElementById('station-list-toggle').addEventListener('click', () => {
@@ -1925,13 +2000,8 @@
                 else openListPanel();
             });
             document.getElementById('panel-close').addEventListener('click', closeListPanel);
-
-            document.getElementById('station-search').addEventListener('input', (e) => {
-                renderStationList(e.target.value);
-            });
-
+            document.getElementById('station-search').addEventListener('input', (e) => renderStationList(e.target.value));
             document.getElementById('locate-btn').addEventListener('click', getLocation);
-
             document.getElementById('refresh-btn').addEventListener('click', () => {
                 const center = map.getCenter();
                 searchGasStations(center.lat, center.lng);
@@ -1942,13 +2012,11 @@
                 if (isListOpen) {
                     const panel = document.getElementById('station-list-panel');
                     const toggle = document.getElementById('station-list-toggle');
-                    if (!panel.contains(e.target) && !toggle.contains(e.target)) {
-                        closeListPanel();
-                    }
+                    if (!panel.contains(e.target) && !toggle.contains(e.target)) closeListPanel();
                 }
             });
 
-            console.log('🚗 Топливо Радар — Сургут (с fallback OSM) загружен!');
+            console.log('⛽ Топливо Радар — iOS стиль загружен!');
         });
 
         // Глобальные экспорты
