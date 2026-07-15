@@ -14,7 +14,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js">
     </script>
 
-    <!-- Font Awesome (только для иконок интерфейса) -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
     <style>
@@ -197,7 +197,7 @@
             border-radius: var(--tg-radius) var(--tg-radius) 0 0;
             box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.7);
             max-height: 85vh;
-            transform: translateY(100%);
+            transform: translateY(calc(100% - 64px));
             transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
             border-top: 1px solid var(--tg-border);
             display: flex;
@@ -286,23 +286,6 @@
         .station-address i {
             font-size: 12px;
             color: var(--tg-text-hint);
-        }
-
-        /* Логотип станции */
-        .station-logo {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--tg-border);
-            margin-right: 12px;
-            background: var(--tg-bg-card);
-            padding: 4px;
-        }
-        .station-logo-wrapper {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
         }
 
         /* Fuel chips */
@@ -732,20 +715,11 @@
             color: var(--tg-accent);
         }
         #station-list-panel .panel-close {
-            background: var(--tg-bg-card);
-            border: 1px solid var(--tg-border);
-            color: var(--tg-text);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 14px;
+            background: none;
+            border: none;
+            color: var(--tg-text-secondary);
+            font-size: 22px;
             cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        #station-list-panel .panel-close:hover {
-            background: var(--tg-bg-input);
         }
 
         #station-list-panel .panel-search {
@@ -789,19 +763,6 @@
         }
         #station-list-panel .panel-list .station-list-item:hover {
             background: var(--tg-bg-input);
-        }
-        #station-list-panel .panel-list .station-list-item .sli-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        #station-list-panel .panel-list .station-list-item .sli-left img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1px solid var(--tg-border);
-            background: var(--tg-bg-card);
         }
         #station-list-panel .panel-list .station-list-item .sli-name {
             font-weight: 500;
@@ -951,10 +912,6 @@
             #locate-btn {
                 bottom: 120px;
             }
-            #station-list-panel .panel-close {
-                font-size: 12px;
-                padding: 4px 12px;
-            }
         }
 
         @media (max-height: 700px) {
@@ -1091,7 +1048,7 @@
     <div id="station-list-panel">
         <div class="panel-header">
             <h4><i class="fas fa-list"></i> Все заправки</h4>
-            <button class="panel-close" id="panel-close"><i class="fas fa-times"></i> Закрыть</button>
+            <button class="panel-close" id="panel-close"><i class="fas fa-xmark"></i></button>
         </div>
         <div class="panel-search">
             <input type="text" id="station-search" placeholder="Поиск заправки..." />
@@ -1228,7 +1185,6 @@
                         queue: 'none',
                         comments: [],
                         stationPhotos: [],
-                        logo: '',
                     };
                 }
             }
@@ -1272,7 +1228,6 @@
                                 queue: 'none',
                                 comments: [],
                                 stationPhotos: [],
-                                logo: '',
                             };
                         }
                     }
@@ -1308,7 +1263,7 @@
         }
 
         // ======================================================================
-        // 6. МАРКЕРЫ (SVG с цветовой индикацией + прогресс-бар)
+        // 6. МАРКЕРЫ (SVG)
         // ======================================================================
         function getMarkerColor(stationId) {
             const st = allStations[stationId];
@@ -1332,56 +1287,22 @@
         }
 
         function createSVGMarker(stationId) {
+            const color = getMarkerColor(stationId);
             const st = allStations[stationId];
-            if (!st) return L.divIcon({ className: 'custom-marker', html: '' });
-            const userData = st.userData || {};
-            const queue = userData.queue || 'none';
-            const fuelColor = getMarkerColor(stationId);
-
-            // Процент для прогресс-бара
-            let percent = 0;
-            let queueColor = '#5c5c60';
-            switch (queue) {
-                case 'none':
-                    percent = 0;
-                    queueColor = '#5c5c60';
-                    break;
-                case 'low':
-                    percent = 33;
-                    queueColor = '#43b581';
-                    break;
-                case 'medium':
-                    percent = 66;
-                    queueColor = '#faa61a';
-                    break;
-                case 'high':
-                    percent = 100;
-                    queueColor = '#f04747';
-                    break;
-            }
-
-            // Иконка заправочной колонки (цвет меняется в зависимости от топлива)
-            const svgIcon = `
-                <svg fill="${fuelColor}" viewBox="0 0 512 512" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M336 448H16c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h320c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zm157.2-340.7l-81-81c-6.2-6.2-16.4-6.2-22.6 0l-11.3 11.3c-6.2 6.2-6.2 16.4 0 22.6L416 97.9V160c0 28.1 20.9 51.3 48 55.2V376c0 13.2-10.8 24-24 24s-24-10.8-24-24v-32c0-48.6-39.4-88-88-88h-8V64c0-35.3-28.7-64-64-64H96C60.7 0 32 28.7 32 64v352h288V304h8c22.1 0 40 17.9 40 40v27.8c0 37.7 27 72 64.5 75.9 43 4.3 79.5-29.5 79.5-71.7V152.6c0-17-6.8-33.3-18.8-45.3zM256 192H96V64h160v128z"/>
+            const queue = (st?.userData?.queue) || 'none';
+            const svg = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42">
+                    <circle cx="21" cy="21" r="19" fill="${color}" stroke="#ffffff" stroke-width="2" />
+                    <text x="21" y="26" font-size="18" text-anchor="middle" fill="#ffffff" font-family="Arial" font-weight="bold">⛽</text>
+                    ${queue !== 'none' ? `<circle cx="32" cy="10" r="7" fill="${queue === 'low' ? '#43b581' : queue === 'medium' ? '#faa61a' : '#f04747'}" stroke="#ffffff" stroke-width="1.5" />` : ''}
                 </svg>
             `;
-
-            const html = `
-                <div style="display:flex;flex-direction:column;align-items:center;width:40px;cursor:pointer;">
-                    ${svgIcon}
-                    <div style="width:32px;height:3px;background:rgba(255,255,255,0.2);border-radius:2px;margin-top:2px;overflow:hidden;">
-                        <div style="width:${percent}%;height:100%;background:${queueColor};border-radius:2px;transition:width 0.2s;"></div>
-                    </div>
-                </div>
-            `;
-
             return L.divIcon({
                 className: 'custom-marker',
-                html: html,
-                iconSize: [40, 40],
-                iconAnchor: [20, 40],
-                popupAnchor: [0, -10],
+                html: svg,
+                iconSize: [42, 42],
+                iconAnchor: [21, 42],
+                popupAnchor: [0, -20],
             });
         }
 
@@ -1468,20 +1389,14 @@
             const queue = userData.queue || 'none';
             const comments = userData.comments || [];
             const stationPhotos = userData.stationPhotos || [];
-            const logo = userData.logo || '';
 
             let html = `
-                <div class="station-logo-wrapper">
-                    ${logo ? `<img src="${logo}" class="station-logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%233a3a3e%22/%3E%3Ctext x=%2250%22 y=%2260%22 font-size=%2240%22 text-anchor=%22middle%22 fill=%22%238e8e93%22%3E⛽%3C/text%3E%3C/svg%3E'" />` : `<img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%233a3a3e%22/%3E%3Ctext x=%2250%22 y=%2260%22 font-size=%2240%22 text-anchor=%22middle%22 fill=%22%238e8e93%22%3E⛽%3C/text%3E%3C/svg%3E" class="station-logo" />`}
-                    <div>
-                        <div class="station-name">
-                            ${st.name || 'АЗС'}
-                            <span class="station-id">${st.id ? st.id.slice(0, 8) : ''}</span>
-                        </div>
-                        <div class="station-address">
-                            <i class="fas fa-location-dot"></i> ${st.address || 'Адрес не указан'}
-                        </div>
-                    </div>
+                <div class="station-name">
+                    ${st.name || 'АЗС'}
+                    <span class="station-id">${st.id ? st.id.slice(0, 8) : ''}</span>
+                </div>
+                <div class="station-address">
+                    <i class="fas fa-location-dot"></i> ${st.address || 'Адрес не указан'}
                 </div>
             `;
 
@@ -1538,19 +1453,6 @@
                 `;
             }
             html += `
-                    </div>
-                </div>
-            `;
-
-            // Загрузка логотипа
-            html += `
-                <div style="margin:10px 0;">
-                    <div style="font-size:13px;font-weight:500;color:var(--tg-text-secondary);margin-bottom:4px;">
-                        <i class="fas fa-image"></i> Логотип заправки (URL)
-                    </div>
-                    <div style="display:flex;gap:8px;">
-                        <input type="text" id="logo-url-input" placeholder="https://example.com/logo.png" value="${logo}" style="flex:1;background:var(--tg-bg-input);border:1px solid var(--tg-border);border-radius:var(--tg-radius-xs);padding:8px 12px;color:var(--tg-text);font-size:14px;" />
-                        <button id="save-logo-btn" style="background:var(--tg-accent);border:none;color:#fff;padding:8px 16px;border-radius:var(--tg-radius-xs);cursor:pointer;font-weight:600;">Сохранить</button>
                     </div>
                 </div>
             `;
@@ -1613,7 +1515,6 @@
             html += `</div>`;
             container.innerHTML = html;
 
-            // Обработчики
             document.getElementById('save-fuels-btn')?.addEventListener('click', () => {
                 saveFuels(stationId);
             });
@@ -1627,19 +1528,6 @@
                     renderStationList();
                     showToast(`Очередь: ${QUEUE_STATUSES.find(s => s.id === q)?.label}`, 'success');
                 });
-            });
-
-            // Сохранение логотипа
-            document.getElementById('save-logo-btn')?.addEventListener('click', () => {
-                const url = document.getElementById('logo-url-input').value.trim();
-                if (url) {
-                    updateStationData(stationId, { logo: url });
-                    renderStationDetail(stationId);
-                    renderStationList();
-                    showToast('Логотип обновлён', 'success');
-                } else {
-                    showToast('Введите URL логотипа', 'error');
-                }
             });
 
             const fileInput = document.getElementById('comment-file-input');
@@ -1786,7 +1674,6 @@
                     queue: 'none',
                     comments: [],
                     stationPhotos: [],
-                    logo: '',
                     lastUpdated: Date.now(),
                 };
                 saveLocalData();
@@ -1829,16 +1716,12 @@
                 const queue = userData.queue || 'none';
                 const hasFuel = Object.values(userData.fuels || {}).some(f => f.available === true);
                 const fuelCount = Object.values(userData.fuels || {}).filter(f => f.available === true).length;
-                const logo = userData.logo || '';
 
                 html += `
                     <div class="station-list-item" data-id="${id}">
-                        <div class="sli-left">
-                            <img src="${logo || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%233a3a3e%22/%3E%3Ctext x=%2250%22 y=%2260%22 font-size=%2240%22 text-anchor=%22middle%22 fill=%22%238e8e93%22%3E⛽%3C/text%3E%3C/svg%3E'}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%233a3a3e%22/%3E%3Ctext x=%2250%22 y=%2260%22 font-size=%2240%22 text-anchor=%22middle%22 fill=%22%238e8e93%22%3E⛽%3C/text%3E%3C/svg%3E'" />
-                            <div>
-                                <div class="sli-name">${name}</div>
-                                <div style="font-size:12px;color:var(--tg-text-secondary);">${address || 'Адрес не указан'}</div>
-                            </div>
+                        <div>
+                            <div class="sli-name">${name}</div>
+                            <div style="font-size:12px;color:var(--tg-text-secondary);">${address || 'Адрес не указан'}</div>
                         </div>
                         <div class="sli-info">
                             <span>${hasFuel ? `⛽ ${fuelCount} вида` : '⛔ нет топлива'}</span>
@@ -1956,8 +1839,10 @@
                 maxZoom: 19,
             });
 
+            // Добавляем TomTom, если тайлы не грузятся – переключаем на OSM
             tomtomLayer.addTo(map);
 
+            // Проверяем загрузку тайлов через событие 'tileerror'
             let tomtomFailed = false;
             map.on('tileerror', function(e) {
                 if (!tomtomFailed && e.tile.src.indexOf('tomtom') !== -1) {
@@ -1968,19 +1853,23 @@
                 }
             });
 
+            // Принудительно пересчитываем размеры после загрузки
             setTimeout(() => {
                 map.invalidateSize();
             }, 200);
 
+            // Обработчик изменения размера окна
             window.addEventListener('resize', () => {
                 map.invalidateSize();
             });
 
+            // Закрытие панелей по клику на карту
             map.on('click', () => {
                 closeSheet();
                 closeListPanel();
             });
 
+            // После инициализации загружаем заправки
             loadLocalData();
             searchGasStations(SURGUT_CENTER[0], SURGUT_CENTER[1]);
         }
@@ -1989,6 +1878,7 @@
         // 17. ЗАПУСК
         // ======================================================================
         document.addEventListener('DOMContentLoaded', () => {
+            // Применяем тему Telegram
             try {
                 if (window.Telegram && Telegram.WebApp) {
                     const tg = Telegram.WebApp;
@@ -2007,10 +1897,12 @@
                     if (theme.section_header_text_color) document.documentElement.style.setProperty('--tg-text-hint',
                         theme.section_header_text_color);
                 }
-            } catch (e) {}
+            } catch (e) { /* не критично */ }
 
+            // Инициализируем карту
             initMap();
 
+            // Обработчики UI
             document.getElementById('sheet-close').addEventListener('click', closeSheet);
             document.getElementById('sheet-handle').addEventListener('click', () => {
                 if (isSheetOpen) closeSheet();
@@ -2056,7 +1948,7 @@
                 }
             });
 
-            console.log('🚗 Топливо Радар — Сургут загружен!');
+            console.log('🚗 Топливо Радар — Сургут (с fallback OSM) загружен!');
         });
 
         // Глобальные экспорты
